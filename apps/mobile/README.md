@@ -1,6 +1,6 @@
 # Open Scripture app (apps/mobile)
 
-React Native + Expo SDK 57. English UI, no login. Scripture text (KJV, NASB, NIV, ESV) is served
+React Native + Expo SDK 57. English UI, no login. Scripture text (KJV, NASB, NIV, NKJV, ESV) is served
 through the Convex backend in `packages/backend` — see the root `README.md` for the data flow,
 env vars and licensing rules. Highlights, notes and plan progress stay on the device.
 

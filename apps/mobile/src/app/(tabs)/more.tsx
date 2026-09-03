@@ -221,8 +221,8 @@ export default function MoreScreen() {
         <View style={styles.settingsRow}>
           <Icon name="library" size={20} color={c.subtext} />
           <Text style={[styles.aboutText, { color: c.subtext }]}>
-            NASB and NIV are served through API.Bible; ESV through Crossway. Their text is shown
-            unchanged with the required attribution.
+            NASB, NIV and NKJV are served through API.Bible; ESV through Crossway. Their text is
+            shown unchanged with the required attribution.
           </Text>
         </View>
       </Card>

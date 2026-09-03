@@ -1,4 +1,4 @@
-export type TranslationId = "KJV" | "NASB" | "NIV" | "ESV";
+export type TranslationId = "KJV" | "NASB" | "NIV" | "NKJV" | "ESV";
 
 /**
  * Where the text comes from.
@@ -28,7 +28,7 @@ export type Translation = {
 
 export const DEFAULT_TRANSLATION: TranslationId = "KJV";
 
-export const TRANSLATION_IDS: TranslationId[] = ["KJV", "NASB", "NIV", "ESV"];
+export const TRANSLATION_IDS: TranslationId[] = ["KJV", "NASB", "NIV", "NKJV", "ESV"];
 
 export const TRANSLATIONS: Record<TranslationId, Translation> = {
   KJV: {
@@ -65,6 +65,19 @@ export const TRANSLATIONS: Record<TranslationId, Translation> = {
       "Scripture quotations taken from The Holy Bible, New International Version® NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission. All rights reserved worldwide.",
     shortAttribution: "NIV® © Biblica, Inc.",
     blurb: "Thought-for-thought. Served through API.Bible.",
+  },
+  NKJV: {
+    id: "NKJV",
+    name: "New King James Version",
+    source: "apibible",
+    offline: false,
+    cacheable: true,
+    kjvFeatures: false,
+    attribution:
+      "Scripture taken from the New King James Version®. Copyright © 1982 by Thomas Nelson. Used by permission. All rights reserved.",
+    shortAttribution:
+      "Scripture taken from the New King James Version®. Copyright © 1982 by Thomas Nelson. Used by permission. All rights reserved.",
+    blurb: "Modernized KJV. Served through API.Bible.",
   },
   ESV: {
     id: "ESV",

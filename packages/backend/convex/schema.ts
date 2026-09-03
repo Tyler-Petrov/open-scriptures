@@ -55,7 +55,7 @@ export default defineSchema({
   }).index("by_book", ["book"]),
 
   // Shared server-side cache of copyrighted chapters fetched from API.Bible
-  // (NASB, NIV). Refreshed after 14 days, purged after 30. ESV is never
+  // (NASB, NIV, NKJV). Refreshed after 14 days, purged after 30. ESV is never
   // written here.
   chapterCache: defineTable({
     translation: v.string(),

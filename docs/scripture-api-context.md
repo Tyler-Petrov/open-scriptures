@@ -4,14 +4,14 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 
 ## Current decision
 
-- Target translations are KJV, NASB, NIV, and ESV.
+- Target translations are KJV, NASB, NIV, NKJV, and ESV.
 - Store the public-domain KJV permanently in Convex. Do not ship a second copy in the app.
-- Use API.Bible for NASB and NIV.
+- Use API.Bible for NASB, NIV, and NKJV.
 - Use Crossway's separate ESV API for ESV. ESV is not available through API.Bible.
 - Do not cache ESV Scripture on our server or in the app. Fetch it when requested through our server so the Crossway API key stays private.
 - Treat the app as non-commercial only while it has no ads, subscriptions, in-app purchases, sponsorships, paid features, upsells, or other revenue.
 
-## API.Bible context for NASB and NIV
+## API.Bible context for NASB, NIV, and NKJV
 
 - The non-commercial Starter plan allows up to three eligible copyrighted translations and 5,000 API requests per month.
 - One outbound HTTP call to API.Bible counts as one request. A whole chapter can be one request.
@@ -21,7 +21,7 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 - API credentials must remain on the server and must never ship in the mobile or web client.
 - The server endpoint must only support this app. It must not become a public mirror or general-purpose Bible API.
 - API.Bible asks that cached passages remain below 500 consecutive verses. Its current public terms do not impose a general 500-verses-total cache ceiling.
-- Do not preload a complete NASB or NIV until the translation-specific agreement shown during API.Bible signup confirms that this is permitted.
+- Do not preload a complete NASB, NIV, or NKJV until the translation-specific agreement shown during API.Bible signup confirms that this is permitted.
 - Remove cached copyrighted content promptly if API access or a translation license ends.
 
 ## Crossway ESV context
@@ -38,7 +38,7 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 ## App behavior
 
 - KJV requires a connection to Convex, like the other translations.
-- NASB and NIV can use a chapter-at-a-time shared server cache with a 14-day refresh and 30-day hard expiration.
+- NASB, NIV, and NKJV can use a chapter-at-a-time shared server cache with a 14-day refresh and 30-day hard expiration.
 - ESV requires a network connection and should show an explicit unavailable message if Crossway cannot be reached. Do not silently replace it with KJV.
 - Strong's word interaction and existing LibriVox audio remain KJV-only.
 - Exact search should use the selected translation's provider.
@@ -49,7 +49,7 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 ## Unresolved choices
 
 - Choose NASB 1995 or NASB 2020.
-- Confirm the NIV edition and exact API.Bible translation IDs.
+- Confirm the NIV edition and exact API.Bible translation IDs, including `API_BIBLE_NKJV_ID`.
 - Register API.Bible and Crossway applications and accept their current agreements.
 - Decide whether to ship the web build. API.Bible requires its usage tracking for Scripture displayed on the web, including cache hits.
 - Revisit all licenses before adding monetization, fundraising, or sponsorships.
