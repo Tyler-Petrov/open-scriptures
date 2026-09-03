@@ -10,8 +10,6 @@ export type BookMeta = {
   chapters: number;
   /** USFM/Paratext id used by API.Bible, e.g. "1SA". */
   apiBibleId: string;
-  /** Bundled asset file stem, e.g. "1Samuel". */
-  file: string;
 };
 
 const OT: [string, string, number][] = [
@@ -93,7 +91,6 @@ function build(rows: [string, string, number][], testament: Testament): BookMeta
     testament,
     chapters,
     apiBibleId: abbrev.toUpperCase(),
-    file: name.replace(/\s+/g, ""),
   }));
 }
 

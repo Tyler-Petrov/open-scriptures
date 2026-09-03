@@ -5,7 +5,8 @@
 import { Asset } from "expo-asset";
 import { File } from "expo-file-system";
 import { InferenceSession, Tensor } from "onnxruntime-react-native";
-import { allVerseKeys, getBundledChapter, ref as refLabel } from "@/lib/bible";
+import { allVerseKeys } from "@openscripture/core";
+import { ref as refLabel } from "@/lib/bible";
 import { encodeWordPiece } from "@/lib/wordpiece";
 import vocabJson from "../assets/semantic/vocab.json";
 import meta from "../assets/semantic/meta.json";
@@ -137,12 +138,10 @@ export async function semanticSearch(query: string, k = 8): Promise<SemanticHit[
   const hits: SemanticHit[] = [];
   for (const i of top) {
     const key = s.keys[i];
-    const [abbrev, ch, v] = key.split(".");
-    const verses = getBundledChapter(abbrev, Number(ch));
     hits.push({
       verseKey: key,
       ref: refLabel(key),
-      text: verses[Number(v) - 1] ?? "",
+      text: "",
       score: scores[i],
     });
   }

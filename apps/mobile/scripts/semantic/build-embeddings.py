@@ -8,7 +8,7 @@ found at /tmp/bge/. Outputs into src/assets/semantic/:
   verses.bin   "BVEC" | u32 count | u32 dim | per-vector( f32 scale | int8[dim] )
   bge-small-q.onnx, vocab.json, meta.json   (runtime assets for the app)
 """
-import json, re, struct, sys, time
+import json, struct, sys, time
 from pathlib import Path
 
 import numpy as np
@@ -16,21 +16,18 @@ import onnxruntime as ort
 from tokenizers import Tokenizer
 
 REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / "scripts"))
+from kjv_source import book_order, load_book
+
 SRC = Path("/tmp/bge")
 OUT = REPO / "src" / "assets" / "semantic"
 QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 
 
-def book_order():
-    src = (REPO / "src/lib/bible.ts").read_text()
-    body = src.split("const FILES", 1)[1].split("};", 1)[0]
-    return re.findall(r'"?([0-9A-Za-z]+)"?:\s*require\("\.\./assets/bible/([A-Za-z0-9]+)\.json"\)', body)
-
-
 def load_verses():
     keys, texts = [], []
     for abbr, fname in book_order():
-        data = json.loads((REPO / f"src/assets/bible/{fname}.json").read_text())
+        data = load_book(fname)
         for ci, chap in enumerate(data["chapters"], 1):
             for vi, verse in enumerate(chap, 1):
                 keys.append(f"{abbr}.{ci}.{vi}")

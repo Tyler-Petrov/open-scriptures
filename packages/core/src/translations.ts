@@ -2,9 +2,7 @@ export type TranslationId = "KJV" | "NASB" | "NIV" | "ESV";
 
 /**
  * Where the text comes from.
- * - bundled: public-domain text seeded into Convex from the app's assets
- *   (and still shipped inside the app for Strong's, audio timings and the
- *   future offline mode).
+ * - bundled: public-domain text stored permanently in Convex.
  * - apibible: fetched from API.Bible through Convex and cached per chapter.
  * - esv: fetched from Crossway's ESV API through Convex, never cached.
  */
@@ -14,7 +12,7 @@ export type Translation = {
   id: TranslationId;
   name: string;
   source: TranslationSource;
-  /** The text may be served from a device-local copy in the future. */
+  /** The text is available without a network connection. */
   offline: boolean;
   /** The server may keep a shared per-chapter cache of this text. */
   cacheable: boolean;
@@ -37,7 +35,7 @@ export const TRANSLATIONS: Record<TranslationId, Translation> = {
     id: "KJV",
     name: "King James Version",
     source: "bundled",
-    offline: true,
+    offline: false,
     cacheable: true,
     kjvFeatures: true,
     attribution: "King James Version. Public domain.",

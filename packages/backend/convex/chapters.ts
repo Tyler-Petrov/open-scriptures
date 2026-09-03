@@ -84,7 +84,7 @@ export const get = query({
       if (!doc) {
         return {
           status: "unavailable" as const,
-          reason: `${t.id} text hasn't been loaded on the server yet. Run the seed script.`,
+          reason: `${t.id} text hasn't been loaded into this Convex deployment.`,
         };
       }
       return { status: "ready" as const, verses: doc.verses, copyright: t.attribution, stale: false };
@@ -132,7 +132,7 @@ export const load = action({
       if (!doc) {
         throw new ConvexError({
           code: "unavailable",
-          message: `${t.id} text hasn't been loaded on the server yet. Run the seed script.`,
+          message: `${t.id} text hasn't been loaded into this Convex deployment.`,
         });
       }
       return { verses: doc.verses, copyright: t.attribution };

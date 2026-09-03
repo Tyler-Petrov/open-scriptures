@@ -5,7 +5,7 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 ## Current decision
 
 - Target translations are KJV, NASB, NIV, and ESV.
-- Keep the existing KJV bundled locally. It does not need an API or server cache.
+- Store the public-domain KJV permanently in Convex. Do not ship a second copy in the app.
 - Use API.Bible for NASB and NIV.
 - Use Crossway's separate ESV API for ESV. ESV is not available through API.Bible.
 - Do not cache ESV Scripture on our server or in the app. Fetch it when requested through our server so the Crossway API key stays private.
@@ -37,12 +37,12 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 
 ## App behavior
 
-- KJV remains fully available offline.
+- KJV requires a connection to Convex, like the other translations.
 - NASB and NIV can use a chapter-at-a-time shared server cache with a 14-day refresh and 30-day hard expiration.
 - ESV requires a network connection and should show an explicit unavailable message if Crossway cannot be reached. Do not silently replace it with KJV.
 - Strong's word interaction and existing LibriVox audio remain KJV-only.
 - Exact search should use the selected translation's provider.
-- Semantic search can continue using the bundled KJV reference index, then fetch the matching reference in the selected translation.
+- Semantic search keeps its derived KJV vector index on-device, then fetches result text from Convex.
 - Highlights, notes, reading plans, and commentary remain attached to canonical verse references so they carry across translations.
 - Copy and share output must identify the selected translation.
 

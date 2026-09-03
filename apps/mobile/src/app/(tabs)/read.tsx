@@ -18,7 +18,7 @@ import { BOOKS, getBookMeta } from "@/lib/bible";
 import { TRANSLATIONS } from "@openscripture/core";
 import { useChapter } from "@/lib/scripture";
 import { BOOK_AUDIO } from "@/lib/audio";
-import { getChapterTiming } from "@/lib/timings";
+import { getChapterTiming, useBookTimings } from "@/lib/timings";
 import { getVerseSpans } from "@/lib/strongs";
 import { completedDays, getPlan, loadPlanProgress, markDayComplete } from "@/lib/plans";
 import {
@@ -187,6 +187,7 @@ export default function ReadScreen() {
   const translation = settings.translation;
   const tInfo = TRANSLATIONS[translation];
   const isKjv = tInfo.kjvFeatures;
+  const bookTimings = useBookTimings(pos.book, isKjv);
   const { state: chapterState, retry: retryChapter } = useChapter(translation, pos.book, pos.chapter);
   const loading = chapterState.status === "loading";
   const verses = chapterState.status === "ready" ? chapterState.data.verses : EMPTY_VERSES;
@@ -205,8 +206,8 @@ export default function ReadScreen() {
     }
   }, [pos.book]);
   const timing = useMemo(
-    () => (isKjv ? getChapterTiming(pos.book, pos.chapter) : null),
-    [isKjv, pos.book, pos.chapter]
+    () => (isKjv ? getChapterTiming(bookTimings, pos.chapter) : null),
+    [bookTimings, isKjv, pos.chapter]
   );
   const bookIndex = Math.max(0, BOOKS.findIndex((b) => b.abbrev === pos.book));
   const prevBook = bookIndex > 0 ? BOOKS[bookIndex - 1] : null;
@@ -437,7 +438,7 @@ export default function ReadScreen() {
     if (loadingRef.current) return;
     const t = audioStatus.currentTime;
     if (!Number.isFinite(t) || t < timing.end + 0.6) return;
-    const next = getChapterTiming(pos.book, pos.chapter + 1);
+    const next = getChapterTiming(bookTimings, pos.chapter + 1);
     if (next) {
       if (next.url !== timing.url) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- page turn driven by playback position
@@ -449,12 +450,13 @@ export default function ReadScreen() {
       stopAudio();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [audioStatus.currentTime, playing, timing, audioUrl, pos.book, pos.chapter]);
+  }, [audioStatus.currentTime, playing, timing, audioUrl, bookTimings, pos.book, pos.chapter]);
 
   /** Keep an active audio session on the chapter the reader navigates to. */
   const syncAudio = (book: string, chapter: number) => {
     if (!audioUrl) return;
-    const t = getChapterTiming(book, chapter);
+    if (book !== pos.book) return;
+    const t = getChapterTiming(bookTimings, chapter);
     if (!t) return; // legacy whole-book stream: leave it playing
     followRef.current = true;
     setPendingSeek(t.verses[0]);
@@ -587,7 +589,7 @@ export default function ReadScreen() {
           label="Text size and theme"
           onPress={() => setDisplayOpen(true)}
         />
-        {isKjv && (timing || BOOK_AUDIO[pos.book]) ? (
+        {isKjv && bookTimings !== undefined && (timing || BOOK_AUDIO[pos.book]) ? (
           <IconButton
             name={audioUrl ? (playing ? "pause" : "play") : "headphones"}
             label={audioUrl ? (playing ? "Pause" : "Resume") : `Listen to ${meta.name}`}

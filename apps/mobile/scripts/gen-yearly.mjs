@@ -3,102 +3,22 @@
 //
 // Run: node scripts/gen-yearly.mjs
 //
-// The script reads per-book chapter counts from src/assets/bible/*.json so the
-// plan data always matches the bundled KJV text. It asserts, for each plan:
+// The script reads per-book chapter counts from the shared core package. It
+// asserts, for each plan:
 //   - exactly 365 days, numbered 1..365 in order
 //   - every one of the 1,189 chapters appears exactly once (no gaps, no overlaps)
 //   - every passage is within the book's real chapter count
 
 import fs from "node:fs";
 import path from "node:path";
+import { BOOKS } from "../../../packages/core/src/books.ts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const BIBLE_DIR = path.join(ROOT, "src", "assets", "bible");
 const OUT_DIR = path.join(ROOT, "src", "assets", "plans");
-
-// Canonical order (39 OT + 27 NT) with the data filenames used by src/lib/bible.ts
-const BOOK_FILES = [
-  ["Gen", "Genesis.json"],
-  ["Exo", "Exodus.json"],
-  ["Lev", "Leviticus.json"],
-  ["Num", "Numbers.json"],
-  ["Deu", "Deuteronomy.json"],
-  ["Jos", "Joshua.json"],
-  ["Jdg", "Judges.json"],
-  ["Rut", "Ruth.json"],
-  ["1Sa", "1Samuel.json"],
-  ["2Sa", "2Samuel.json"],
-  ["1Ki", "1Kings.json"],
-  ["2Ki", "2Kings.json"],
-  ["1Ch", "1Chronicles.json"],
-  ["2Ch", "2Chronicles.json"],
-  ["Ezr", "Ezra.json"],
-  ["Neh", "Nehemiah.json"],
-  ["Est", "Esther.json"],
-  ["Job", "Job.json"],
-  ["Psa", "Psalms.json"],
-  ["Pro", "Proverbs.json"],
-  ["Ecc", "Ecclesiastes.json"],
-  ["Sng", "SongofSolomon.json"],
-  ["Isa", "Isaiah.json"],
-  ["Jer", "Jeremiah.json"],
-  ["Lam", "Lamentations.json"],
-  ["Ezk", "Ezekiel.json"],
-  ["Dan", "Daniel.json"],
-  ["Hos", "Hosea.json"],
-  ["Jol", "Joel.json"],
-  ["Amo", "Amos.json"],
-  ["Oba", "Obadiah.json"],
-  ["Jon", "Jonah.json"],
-  ["Mic", "Micah.json"],
-  ["Nam", "Nahum.json"],
-  ["Hab", "Habakkuk.json"],
-  ["Zep", "Zephaniah.json"],
-  ["Hag", "Haggai.json"],
-  ["Zec", "Zechariah.json"],
-  ["Mal", "Malachi.json"],
-  ["Mat", "Matthew.json"],
-  ["Mrk", "Mark.json"],
-  ["Luk", "Luke.json"],
-  ["Jhn", "John.json"],
-  ["Act", "Acts.json"],
-  ["Rom", "Romans.json"],
-  ["1Co", "1Corinthians.json"],
-  ["2Co", "2Corinthians.json"],
-  ["Gal", "Galatians.json"],
-  ["Eph", "Ephesians.json"],
-  ["Php", "Philippians.json"],
-  ["Col", "Colossians.json"],
-  ["1Th", "1Thessalonians.json"],
-  ["2Th", "2Thessalonians.json"],
-  ["1Ti", "1Timothy.json"],
-  ["2Ti", "2Timothy.json"],
-  ["Tit", "Titus.json"],
-  ["Phm", "Philemon.json"],
-  ["Heb", "Hebrews.json"],
-  ["Jas", "James.json"],
-  ["1Pe", "1Peter.json"],
-  ["2Pe", "2Peter.json"],
-  ["1Jn", "1John.json"],
-  ["2Jn", "2John.json"],
-  ["3Jn", "3John.json"],
-  ["Jud", "Jude.json"],
-  ["Rev", "Revelation.json"],
-];
 
 const OT_COUNT = 39;
 
-// Load real chapter counts from the bundled bible data
-const chapterCount = new Map();
-for (const [abbrev, file] of BOOK_FILES) {
-  const p = path.join(BIBLE_DIR, file);
-  if (!fs.existsSync(p)) {
-    console.error(`Missing bible data file: ${p}`);
-    process.exit(1);
-  }
-  const data = JSON.parse(fs.readFileSync(p, "utf8"));
-  chapterCount.set(abbrev, data.chapters.length);
-}
+const chapterCount = new Map(BOOKS.map((book) => [book.abbrev, book.chapters]));
 
 const otTotal = [...chapterCount.values()].slice(0, OT_COUNT).reduce((a, b) => a + b, 0);
 const ntTotal = [...chapterCount.values()].slice(OT_COUNT).reduce((a, b) => a + b, 0);
@@ -106,7 +26,7 @@ if (otTotal !== 929 || ntTotal !== 260) {
   console.error(`Unexpected chapter totals: OT=${otTotal} NT=${ntTotal} (expected 929/260)`);
   process.exit(1);
 }
-console.log(`Loaded 66 books from src/assets/bible: OT=${otTotal} chapters, NT=${ntTotal} chapters, total=${otTotal + ntTotal}`);
+console.log(`Loaded 66 books from @openscripture/core: OT=${otTotal} chapters, NT=${ntTotal} chapters, total=${otTotal + ntTotal}`);
 
 // Flatten the canonical order into per-chapter entries
 function orderedChapters(abbrevs) {
@@ -119,8 +39,8 @@ function orderedChapters(abbrevs) {
   return out;
 }
 
-const OT_ORDER = orderedChapters(BOOK_FILES.slice(0, OT_COUNT).map(([a]) => a));
-const NT_ORDER = orderedChapters(BOOK_FILES.slice(OT_COUNT).map(([a]) => a));
+const OT_ORDER = orderedChapters(BOOKS.slice(0, OT_COUNT).map((book) => book.abbrev));
+const NT_ORDER = orderedChapters(BOOKS.slice(OT_COUNT).map((book) => book.abbrev));
 
 function groupPassages(entries) {
   const passages = [];

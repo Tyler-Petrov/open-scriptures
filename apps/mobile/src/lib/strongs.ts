@@ -2,7 +2,7 @@
 // numbers, the merged dictionary, and an occurrence index. All data is built
 // by scripts/strongs/build-strongs.py and bundled — nothing loads from network.
 
-import { allVerseKeys } from "@/lib/bible";
+import { allVerseKeys } from "@openscripture/core";
 
 /** [surface text, Strong's code or 0 for untagged glue, 1 when the word was
  * supplied by the translators (rendered italic, as in printed KJVs)] */

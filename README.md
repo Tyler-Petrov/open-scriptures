@@ -14,14 +14,13 @@ docs/               Design blueprint and the licensing/caching notes for API.Bib
 
 | Id   | Source                      | Served from                           | Cached on server        |
 |------|-----------------------------|---------------------------------------|-------------------------|
-| KJV  | Bundled, public domain      | Convex (seeded from `apps/mobile/src/assets/bible`) | Permanent |
+| KJV  | Public domain dataset       | Convex                                | Permanent |
 | NASB | API.Bible                   | Convex, fetched on first read         | 14-day refresh, 30-day purge |
 | NIV  | API.Bible                   | Convex, fetched on first read         | 14-day refresh, 30-day purge |
 | ESV  | Crossway ESV API            | Convex, fetched on every read         | Never                   |
 
-Every read goes through Convex today, KJV included. The app still ships the KJV JSON because
-Strong's word spans, audio timings and the semantic index are aligned to that exact text, and it
-is where a future offline provider plugs in (see `apps/mobile/src/lib/scripture.ts`).
+Every read goes through Convex, KJV included. Commentary and LibriVox verse timings also live in
+Convex. The mobile bundle keeps only the derived Strong's and semantic-search indexes.
 
 Rules that shaped this (full notes in `docs/scripture-api-context.md`):
 - API keys live only in Convex env vars and never reach the client.
@@ -36,10 +35,12 @@ Rules that shaped this (full notes in `docs/scripture-api-context.md`):
 npm install                      # installs all workspaces (hoisted)
 cd packages/backend
 npx convex dev --once            # log in / pick the deployment; writes .env.local
-npm run seed                     # KJV → bundledChapters + bundledVerses (1,189 / 31,102 rows)
 cd ../../apps/mobile
 cp .env.example .env             # set EXPO_PUBLIC_CONVEX_URL to the deployment URL
 ```
+
+KJV text, commentary, and timing records are deployment data rather than repository assets. Use a
+Convex snapshot export to back them up and import that snapshot when provisioning another deployment.
 
 Convex env vars (dashboard → Settings → Environment variables):
 

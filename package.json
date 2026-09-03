@@ -9,7 +9,6 @@
     "dev:backend": "npm run dev --workspace @openscripture/backend",
     "dev:mobile": "npm run start --workspace open-scripture",
     "web": "npm run web --workspace open-scripture",
-    "seed": "npm run seed --workspace @openscripture/backend",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspace open-scripture"
   },

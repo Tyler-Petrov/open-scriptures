@@ -9,10 +9,7 @@
     "dev": "convex dev",
     "deploy": "convex deploy",
     "codegen": "convex codegen",
-    "typecheck": "tsc --noEmit -p convex/tsconfig.json",
-    "seed:build": "node scripts/build-seed.mjs",
-    "seed:push": "convex import --table bundledChapters --replace -y seed/bundledChapters.jsonl && convex import --table bundledVerses --replace -y seed/bundledVerses.jsonl",
-    "seed": "npm run seed:build && npm run seed:push"
+    "typecheck": "tsc --noEmit -p convex/tsconfig.json"
   },
   "dependencies": {
     "@openscripture/core": "*",

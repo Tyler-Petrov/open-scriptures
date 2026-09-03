@@ -9,6 +9,7 @@
  */
 
 import type * as chapters from "../chapters.js";
+import type * as commentary from "../commentary.js";
 import type * as crons from "../crons.js";
 import type * as lib_access from "../lib/access.js";
 import type * as lib_availability from "../lib/availability.js";
@@ -16,6 +17,7 @@ import type * as lib_providers_apiBible from "../lib/providers/apiBible.js";
 import type * as lib_providers_esv from "../lib/providers/esv.js";
 import type * as lib_providers_types from "../lib/providers/types.js";
 import type * as search from "../search.js";
+import type * as timings from "../timings.js";
 import type * as translations from "../translations.js";
 import type * as verses from "../verses.js";
 
@@ -27,6 +29,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   chapters: typeof chapters;
+  commentary: typeof commentary;
   crons: typeof crons;
   "lib/access": typeof lib_access;
   "lib/availability": typeof lib_availability;
@@ -34,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   "lib/providers/esv": typeof lib_providers_esv;
   "lib/providers/types": typeof lib_providers_types;
   search: typeof search;
+  timings: typeof timings;
   translations: typeof translations;
   verses: typeof verses;
 }>;

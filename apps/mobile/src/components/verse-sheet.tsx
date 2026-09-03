@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Clipboard,
   Pressable,
@@ -13,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/lib/theme";
 import { TRANSLATIONS, type TranslationId } from "@openscripture/core";
 import { ref } from "@/lib/bible";
-import { getCommentaryFor } from "@/lib/commentary";
+import { useCommentaryFor } from "@/lib/commentary";
 import {
   HIGHLIGHT_TINTS,
   getHighlights,
@@ -43,10 +44,12 @@ export default function VerseSheet({ verseKey, text, translation, onClose }: Ver
   const [noteDraft, setNoteDraft] = useState("");
   const [copied, setCopied] = useState(false);
   const [openCmt, setOpenCmt] = useState<string | null>(null);
-  const commentary = useMemo(() => {
-    const [abbrev, chapter, verse] = verseKey.split(".");
-    return getCommentaryFor(abbrev, Number(chapter), Number(verse));
-  }, [verseKey]);
+  const [commentaryBook, commentaryChapter, commentaryVerse] = verseKey.split(".");
+  const commentary = useCommentaryFor(
+    commentaryBook,
+    Number(commentaryChapter),
+    Number(commentaryVerse)
+  );
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftRef = useRef("");
   const savedNoteRef = useRef("");
@@ -217,7 +220,12 @@ export default function VerseSheet({ verseKey, text, translation, onClose }: Ver
               </Pressable>
             </View>
 
-            {commentary.length > 0 ? (
+            {commentary === undefined ? (
+              <View style={styles.cmtLoading}>
+                <ActivityIndicator size="small" color={c.gold} />
+                <Text style={styles.cmtRef}>Loading commentary…</Text>
+              </View>
+            ) : commentary.length > 0 ? (
               <>
                 <Text style={styles.label}>Commentary</Text>
                 <View style={styles.cmtList}>
@@ -350,6 +358,12 @@ const sheetStyles = (c: Palette, bottom: number) =>
     },
     cmtList: {
       gap: 8,
+    },
+    cmtLoading: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 8,
     },
     cmtCard: {
       borderWidth: 1,

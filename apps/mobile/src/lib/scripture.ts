@@ -1,9 +1,7 @@
 // Scripture text in any translation, served through Convex.
 //
-// Everything goes through the backend today (including KJV, which is seeded
-// from the bundled assets). The bundled KJV loader in `bible.ts` stays in the
-// app for Strong's, audio timings and the semantic index, and is the natural
-// place to add an offline provider later.
+// Everything goes through the backend, including KJV. The mobile bundle keeps
+// only derived Strong's and semantic-search indexes.
 
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "convex/react";

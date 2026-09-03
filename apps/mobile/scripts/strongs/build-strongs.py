@@ -9,7 +9,7 @@ Sources (all public domain):
 
 Outputs into src/assets/strongs/:
   {BookName}.json  {"book":abbrev,"chapters":[[verse-spans|0,...],...]}
-                   verse-spans = [[text, "G123"|0], ...] concat == bundled KJV verse
+                   verse-spans = [[text, "G123"|0], ...] concat == source KJV verse
   dict.json        { code: {o,t,p,d,k,r,u,pos,l} }  (original, translit, pron,
                    def, kjv usage, derivation, outline, part-of-speech, language)
   occurrences.json { code: [verse ordinal in canonical order, ...] }
@@ -18,6 +18,9 @@ import html, json, re, subprocess, sys, time, unicodedata
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO / "scripts"))
+from kjv_source import book_order, load_book
+
 CACHE = Path.home() / ".cache" / "strongs-src"
 OUT = REPO / "src" / "assets" / "strongs"
 RAW = "https://raw.githubusercontent.com/kaiserlik/kjv/master"
@@ -44,12 +47,6 @@ def fetch(url, dest):
         return dest
     subprocess.run(["curl", "-sL", "--retry", "4", "-o", str(dest), url], check=True)
     return dest
-
-
-def book_order():
-    src = (REPO / "src/lib/bible.ts").read_text()
-    body = src.split("const FILES", 1)[1].split("};", 1)[0]
-    return re.findall(r'"?([0-9A-Za-z]+)"?:\s*require\("\.\./assets/bible/([A-Za-z0-9]+)\.json"\)', body)
 
 
 VERSE_RE = re.compile(r'"([0-9A-Za-z]+\|\d+\|\d+)"\s*:\s*\{\s*"en"\s*:\s*"((?:[^"\\]|\\.)*)"')
@@ -188,7 +185,7 @@ def main():
     ordinal = 0
     occurrences = {}
     for abbr, fname in order:
-        data = json.loads((REPO / f"src/assets/bible/{fname}.json").read_text())
+        data = load_book(fname)
         kfile = fetch(f"{RAW}/{MAP[abbr]}.json", CACHE / f"{MAP[abbr]}.json")
         kverses = extract_en(kfile.read_text())
         chapters_out = []

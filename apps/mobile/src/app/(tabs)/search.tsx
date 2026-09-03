@@ -151,13 +151,17 @@ export default function SearchScreen() {
       () => {
         void semanticSearch(active, 8)
           .then(async (hits) => {
-            if (tInfo.source === "bundled") return hits;
             const found = await lookupVerses(translation, hits.map((h) => h.verseKey));
-            // Anything the provider couldn't return keeps its KJV text, labelled.
+            if (tInfo.source === "bundled") {
+              return hits.map((hit) => ({ ...hit, text: found[hit.verseKey] ?? "" }));
+            }
+            const missing = hits.filter((hit) => !found[hit.verseKey]).map((hit) => hit.verseKey);
+            const kjv = missing.length > 0 ? await lookupVerses("KJV", missing) : {};
+            // If a licensed provider omits a result, show the KJV text and label it.
             return hits.map((h) =>
               found[h.verseKey]
                 ? { ...h, text: found[h.verseKey] }
-                : { ...h, ref: `${h.ref} (KJV)` }
+                : { ...h, text: kjv[h.verseKey] ?? "", ref: `${h.ref} (KJV)` }
             );
           })
           .then((hits) => {
