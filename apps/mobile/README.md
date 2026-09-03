@@ -31,13 +31,19 @@ tap → action sheet, floating chapter nav, and an in-reader plan banner (mark d
 `openscripture.settings` (includes `translation`), `openscripture.position`, `openscripture.highlights`, `openscripture.bookmarks`, `openscripture.notes`, `openscripture.planProgress` — see `CONTRACT.md` for shapes.
 
 ## Build
-Requires JDK 17 (`~/.jdks/jdk-17.0.20.1+1`) and Android SDK (`~/Android/Sdk`).
+Requires JDK 17 (`~/.jdks/jdk-17.0.20.1+1`) and Android SDK (`~/Android/Sdk`) with
+Build-Tools 36.0.0.
 
 ```bash
 JAVA_HOME=~/.jdks/jdk-17.0.20.1+1 ANDROID_HOME=~/Android/Sdk npx expo prebuild -p android
 cd android && JAVA_HOME=~/.jdks/jdk-17.0.20.1+1 ANDROID_HOME=~/Android/Sdk \
   ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
 # APK: android/app/build/outputs/apk/release/app-release.apk  (signed with the debug keystore — installable)
+
+# Verify 16 KB ZIP and ELF alignment before shipping.
+cd ..
+ZIPALIGN=~/Android/Sdk/build-tools/36.0.0/zipalign \
+  scripts/verify-android-16kb.sh android/app/build/outputs/apk/release/app-release.apk
 ```
 
 Latest APK: `../../OpenScripture-v1.0.apk` (arm64, ~52MB). Install: copy to phone, or `~/Android/Sdk/platform-tools/adb install OpenScripture-v1.0.apk`.
