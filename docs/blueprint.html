@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bible App Blueprint — YouVersion-style MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2130;
+    --ink2:#232B3E;
+    --paper:#F6F1E6;
+    --paper2:#EFE8D8;
+    --gold:#C9A24B;
+    --goldsoft:rgba(201,162,75,.18);
+    --ox:#B45454;
+    --mut:#98A0B3;
+    --mutd:#6E7688;
+    --line:rgba(255,255,255,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink);color:var(--paper);font-family:'Public Sans',sans-serif;font-size:16px;line-height:1.6}
+  ::selection{background:var(--gold);color:var(--ink)}
+  a{color:var(--gold);text-decoration:none}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  section{padding:72px 0}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+  h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,3.4vw,38px);line-height:1.15;margin:10px 0 8px}
+  .lede{color:var(--mut);max-width:64ch}
+  .rule{height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:22px 0 0;border:0}
+
+  /* ---------- HERO ---------- */
+  header.hero{padding:84px 0 64px}
+  .hero-grid{display:grid;grid-template-columns:auto 1fr;gap:44px;align-items:end}
+  .dropcap{width:128px;height:128px;border:2px solid var(--gold);border-radius:6px;display:grid;place-items:center;background:linear-gradient(160deg,rgba(201,162,75,.14),rgba(201,162,75,.02));position:relative}
+  .dropcap::before{content:"";position:absolute;inset:6px;border:1px solid rgba(201,162,75,.35);border-radius:3px}
+  .dropcap span{font-family:'Fraunces',serif;font-size:84px;font-weight:600;color:var(--gold);line-height:1}
+  .hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(34px,5vw,58px);line-height:1.06;margin:12px 0 14px}
+  .hero h1 em{font-style:italic;color:var(--gold)}
+  .facts{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+  .fact{border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:13.5px;color:var(--mut)}
+  .fact b{color:var(--paper);font-weight:600}
+  .facts .fact:first-child{border-color:var(--gold);color:var(--paper)}
+
+  /* ---------- SCOPE ---------- */
+  .scope{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .scol{border:1px solid var(--line);border-radius:10px;padding:26px 28px;background:var(--ink2)}
+  .scol h3{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .scol.in h3{color:var(--gold)}
+  .scol.out h3{color:var(--ox)}
+  .scol ul{list-style:none}
+  .scol li{padding:7px 0 7px 22px;position:relative;color:#D9DEE9;font-size:15px;border-bottom:1px dashed rgba(255,255,255,.07)}
+  .scol li:last-child{border:0}
+  .scol.in li::before{content:"✓";position:absolute;left:0;color:var(--gold);font-size:13px}
+  .scol.out li::before{content:"✕";position:absolute;left:0;color:var(--ox);font-size:12px}
+
+  /* ---------- FLOW MAP ---------- */
+  .map{display:flex;flex-direction:column;gap:0}
+  .lane{border-left:2px solid var(--gold);padding:0 0 0 22px;margin:0 0 34px}
+  .lane-tag{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  .lane-row{display:flex;align-items:center;gap:0;overflow-x:auto;padding:4px 0 10px}
+  .node{flex:0 0 auto;border:1px solid var(--line);background:var(--ink2);border-radius:8px;padding:10px 16px;font-size:14px;white-space:nowrap}
+  .node b{color:var(--paper)}
+  .node small{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--mut);letter-spacing:.08em}
+  .node.gold{border-color:var(--gold);background:var(--goldsoft)}
+  .conn{flex:0 0 52px;height:2px;background:var(--gold);position:relative;margin:0 8px}
+  .conn::after{content:"";position:absolute;right:-1px;top:-4px;border-left:7px solid var(--gold);border-top:5px solid transparent;border-bottom:5px solid transparent}
+  .conn span{position:absolute;left:50%;transform:translateX(-50%);top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mut);white-space:nowrap}
+  .conn.dashed{background:repeating-linear-gradient(90deg,var(--ox) 0 5px,transparent 5px 9px)}
+  .conn.dashed::after{border-left-color:var(--ox)}
+  .conn.dashed span{color:var(--ox)}
+  .map-note{font-size:13.5px;color:var(--mutd);margin-top:6px}
+
+  /* ---------- SCREEN CATALOG ---------- */
+  .screens{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:26px}
+  .scr-card{border:1px solid var(--line);border-radius:12px;background:var(--ink2);padding:26px;display:grid;grid-template-columns:150px 1fr;gap:22px}
+  .scr-head{grid-column:1/-1}
+  .scr-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.18em}
+  .scr-name{font-family:'Fraunces',serif;font-size:21px;font-weight:600;margin:4px 0 2px}
+  .scr-owner{font-size:12.5px;color:var(--mutd)}
+  .scr-body p{font-size:14px;color:#C9CFDC;margin-bottom:12px}
+  .nav-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--mut)}
+  .chip.go{border-color:var(--gold);color:var(--gold)}
+  .chip.back{border-color:var(--ox);color:var(--ox)}
+  .chip.sheet{border-color:#7FA6C9;color:#9CC1E0}
+
+  /* ---------- PHONE WIREFRAMES ---------- */
+  .phone{width:150px;aspect-ratio:9/18.5;background:var(--paper);border-radius:20px;border:2px solid #3A4257;box-shadow:0 8px 24px rgba(0,0,0,.45);padding:10px 9px 8px;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;align-self:start}
+  .phone .notch{width:44px;height:5px;border-radius:3px;background:#D9D2C2;margin:0 auto 2px;flex:0 0 auto}
+  .ph-hd{display:flex;align-items:center;justify-content:space-between;font-family:'Public Sans',sans-serif;font-size:8.5px;font-weight:600;color:#3E3226}
+  .ph-hd .ic{width:12px;height:12px;border:1.4px solid #8B8272;border-radius:3px}
+  .ln{height:5px;border-radius:3px;background:#DCD5C5}
+  .ln.ink{background:#B9B1A0}
+  .ph-btn{height:16px;border-radius:8px;background:var(--ox);width:100%}
+  .ph-btn.gold{background:var(--gold)}
+  .ph-btn.ghost{background:transparent;border:1px solid #B9B1A0}
+  .ph-tabs{margin-top:auto;display:flex;justify-content:space-around;padding:5px 2px 2px;border-top:1px solid #E2DBC9}
+  .ph-tabs i{width:9px;height:9px;border-radius:50%;background:#C7BFAE}
+  .ph-tabs i.on{background:var(--ox)}
+  .ph-card{border:1.4px solid var(--gold);border-radius:6px;padding:7px;background:#FBF8F0}
+  .ph-chiprow{display:flex;gap:4px}
+  .ph-chip{flex:1;height:13px;border-radius:7px;border:1px solid #C9C2B1;background:#FBF8F0}
+  .ph-vs{display:flex;gap:3px;align-items:flex-start}
+  .ph-vs sup{font-size:6.5px;color:var(--ox);font-weight:700;line-height:1.2}
+  .ph-vs .col{flex:1;display:flex;flex-direction:column;gap:3.5px}
+  .hl{background:var(--goldsoft)}
+  .ph-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
+  .ph-grid i{height:11px;border:1px solid #C9C2B1;border-radius:3px;display:grid;place-items:center;font-size:6.5px;color:#5C5344;font-style:normal}
+  .sheet-mask{position:absolute;inset:0;background:rgba(30,25,18,.28)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#FBF8F0;border-radius:10px 10px 0 0;padding:8px 8px 10px}
+  .sheet .handle{width:30px;height:3px;border-radius:2px;background:#C9C2B1;margin:0 auto 7px}
+  .dots{display:flex;gap:5px;margin-bottom:7px}
+  .dots i{width:11px;height:11px;border-radius:50%}
+  .srow{display:flex;justify-content:space-between;align-items:center;padding:4.5px 2px;border-top:1px solid #ECE5D4}
+  .srow .ln{flex:1;margin-right:14px}
+  .prog{height:4px;border-radius:2px;background:#E2DBC9;position:relative;margin:4px 0}
+  .prog i{position:absolute;inset:0;width:62%;border-radius:2px;background:var(--gold)}
+  .ph-list{display:flex;flex-direction:column;gap:5px}
+  .ph-item{display:flex;gap:5px;align-items:center}
+  .ph-thumb{width:22px;height:16px;border-radius:3px;background:#CBB795}
+  .ph-check{width:9px;height:9px;border-radius:50%;border:1.4px solid #A79E8B;flex:0 0 auto}
+  .ph-check.done{background:var(--ox);border-color:var(--ox)}
+  .tgl{width:16px;height:9px;border-radius:5px;background:#C7BFAE;position:relative}
+  .tgl::after{content:"";position:absolute;top:1px;left:1px;width:7px;height:7px;border-radius:50%;background:#fff}
+  .tgl.on{background:var(--gold)}
+
+  /* ---------- DECISIONS ---------- */
+  .dec{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .dec-row{display:grid;grid-template-columns:210px 1fr 240px;gap:0;border-bottom:1px solid var(--line)}
+  .dec-row:last-child{border-bottom:0}
+  .dec-row>div{padding:16px 20px;font-size:14.5px}
+  .dec-q{font-weight:600;color:var(--paper);background:var(--ink2)}
+  .dec-def{color:#C9CFDC}
+  .dec-def b{color:var(--gold);font-weight:600}
+  .dec-you{color:var(--mutd);font-style:italic;border-left:1px solid var(--line)}
+  .dec-head{display:contents}
+  .dec-head>div{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);background:var(--ink2);border-bottom:1px solid var(--gold)}
+  @media(max-width:900px){.dec-row{grid-template-columns:1fr}.dec-you{border-left:0;border-top:1px dashed var(--line)}}
+  @media(max-width:760px){.scr-card{grid-template-columns:1fr}.phone{justify-self:center}.hero-grid{grid-template-columns:1fr}}
+
+  /* ---------- BUILD PLAN ---------- */
+  .phases{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+  .phase{border-top:2px solid var(--gold);padding-top:14px}
+  .phase .pnum{font-family:'Fraunces',serif;font-size:30px;color:var(--gold);font-weight:600;line-height:1}
+  .phase h4{font-size:15px;margin:8px 0 6px;font-weight:600}
+  .phase p{font-size:13.5px;color:var(--mut)}
+
+  footer{padding:44px 0 60px;border-top:1px solid var(--line);margin-top:40px}
+  footer p{color:var(--mutd);font-size:13.5px}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="dropcap" aria-hidden="true"><span>B</span></div>
+    <div>
+      <p class="eyebrow">Blueprint · for your review before build</p>
+      <h1>The Bible App<br><em>a YouVersion-style MVP</em></h1>
+      <p class="lede">Ten screens, four tabs, one reader. This is the full scope of the basic clone — how each screen looks, what it does, and how they connect. Read it, mark your suggestions in the “Your call” slots, and I’ll build it to match.</p>
+      <div class="facts">
+        <div class="fact"><b>React Native</b> + Expo</div>
+        <div class="fact"><b>10</b> screens</div>
+        <div class="fact"><b>4</b> bottom tabs</div>
+        <div class="fact"><b>2</b> stacks + 2 overlays</div>
+        <div class="fact">KJV only</div>
+        <div class="fact">Local-first, <b>no login</b></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ SCOPE ============ -->
+<section id="scope">
+  <p class="eyebrow">01 — Scope</p>
+  <h2>What “basics” means here</h2>
+  <p class="lede" style="margin-bottom:26px">Everything that makes it feel like the Bible App, and nothing that needs a server.</p>
+  <div class="scope">
+    <div class="scol in">
+      <h3>In the MVP</h3>
+      <ul>
+        <li>Read any chapter, book by book, with verse numbers</li>
+        <li>Verse of the Day on Home, with Continue Reading</li>
+        <li>Highlights, bookmarks and notes — saved on the device</li>
+        <li>Search the full Bible text</li>
+        <li>Reading plans with a daily devotional flow — including 2 yearly through-the-Bible tracks</li>
+        <li>Dark mode, font size, default translation</li>
+        <li>Chapter audio streamed from the open LibriVox KJV recording</li>
+      </ul>
+    </div>
+    <div class="scol out">
+      <h3>Out for now</h3>
+      <ul>
+        <li>Accounts and cloud sync between devices</li>
+        <li>Audio downloads and text-to-speech (streaming only)</li>
+        <li>Social features: friends, comments, community</li>
+        <li>Paid content, subscriptions, ads</li>
+        <li>Verse image / share-graphics generator</li>
+        <li>Live events and church integrations</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FLOW MAP ============ -->
+<section id="flow">
+  <p class="eyebrow">02 — Architecture</p>
+  <h2>How the screens fit together</h2>
+  <p class="lede" style="margin-bottom:30px">One tab bar holds the app together. The Bible tab and the Plans tab each carry their own stack; the overlays sit on top of the reader.</p>
+
+  <div class="map">
+    <div class="lane">
+      <p class="lane-tag">Launch</p>
+      <div class="lane-row">
+        <div class="node gold"><b>S-01 Onboarding</b><small>first run only</small></div>
+        <div class="conn"><span>once</span></div>
+        <div class="node"><b>Tab bar</b><small>remembers last tab</small></div>
+      </div>
+      <p class="map-note">S-01 never appears again after the first launch. Returning users land straight on their last tab.</p>
+    </div>
+
+    <div class="lane">
+      <p class="lane-tag">Bottom tabs — always visible</p>
+      <div class="lane-row">
+        <div class="node"><b>S-02 Home</b><small>tab 1</small></div>
+        <div class="node"><b>S-03 Bible</b><small>tab 2 · root of its stack</small></div>
+        <div class="node"><b>S-07 Plans</b><small>tab 3 · root of its stack</small></div>
+        <div class="node"><b>S-10 More</b><small>tab 4</small></div>
+      </div>
+    </div>
+
+    <div class="lane">
+      <p class="lane-tag">Bible stack</p>
+      <div class="lane-row">
+        <div class="node"><b>S-03 Reader</b><small>chapter text</small></div>
+        <div class="conn"><span>modal</span></div>
+        <div class="node"><b>S-04 Book · Chapter</b><small>picker</small></div>
+        <div class="conn dashed"><span>sheet</span></div>
+        <div class="node"><b>S-05 Verse actions</b><small>bottom sheet</small></div>
+        <div class="conn"><span>push</span></div>
+        <div class="node"><b>S-06 Search</b><small>full text</small></div>
+        <div class="conn dashed"><span>result</span></div>
+        <div class="node gold"><b>S-03 Reader</b><small>jumps to verse</small></div>
+      </div>
+    </div>
+
+    <div class="lane">
+      <p class="lane-tag">Plans stack</p>
+      <div class="lane-row">
+        <div class="node"><b>S-07 Plans</b><small>list</small></div>
+        <div class="conn"><span>push</span></div>
+        <div class="node"><b>S-08 Plan detail</b><small>day list</small></div>
+        <div class="conn"><span>push</span></div>
+        <div class="node"><b>S-09 Today’s reading</b><small>devotional</small></div>
+        <div class="conn dashed"><span>tab switch</span></div>
+        <div class="node gold"><b>S-03 Reader</b><small>linked passage</small></div>
+      </div>
+    </div>
+
+    <div class="lane">
+      <p class="lane-tag">Cross-links from Home</p>
+      <div class="lane-row">
+        <div class="node"><b>S-02 Home</b><small>hub</small></div>
+        <div class="conn"><span>continue</span></div>
+        <div class="node gold"><b>S-03 Reader</b><small>last position</small></div>
+        <div class="conn"><span>push</span></div>
+        <div class="node"><b>S-06 Search</b><small>quick access</small></div>
+        <div class="conn"><span>tab switch</span></div>
+        <div class="node"><b>S-07 Plans</b><small>featured</small></div>
+      </div>
+    </div>
+  </div>
+  <hr class="rule">
+</section>
+
+<!-- ============ SCREENS ============ -->
+<section id="screens">
+  <p class="eyebrow">03 — Screen catalog</p>
+  <h2>The ten screens</h2>
+  <p class="lede" style="margin-bottom:30px">Wireframes show structure, not final styling. Gold lines mark where your suggestions matter most.</p>
+
+  <div class="screens">
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-01</p>
+        <h3 class="scr-name">Onboarding</h3>
+        <p class="scr-owner">First run · before tabs</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div style="height:26px;border-radius:5px;background:var(--gold);opacity:.85;margin-top:12px;width:26px;align-self:center"></div>
+        <div class="ln" style="width:80%;align-self:center;margin-top:8px"></div>
+        <div class="ln" style="width:60%;align-self:center"></div>
+        <div class="ph-chiprow" style="margin-top:14px"><div class="ph-chip" style="border-color:var(--ox)"></div><div class="ph-chip"></div></div>
+        <div class="ph-btn" style="margin-top:14px"></div>
+        <div class="ph-btn ghost" style="margin-top:6px"></div>
+      </div>
+      <div class="scr-body">
+        <p>Three-step welcome: pick a translation, set language, then “Start reading” — no account needed. A “Sign in later” ghost link keeps the door open.</p>
+        <div class="nav-chips">
+          <span class="chip go">→ S-02 Home (or last tab)</span>
+          <span class="chip sheet">skipped on every return</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-02</p>
+        <h3 class="scr-name">Home</h3>
+        <p class="scr-owner">Tab 1</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-hd"><span>Home</span><span class="ic"></span></div>
+        <div class="ph-card">
+          <div class="ln" style="width:55%"></div>
+          <div class="ln ink" style="width:90%;margin-top:4px"></div>
+          <div class="ln ink" style="width:70%;margin-top:3.5px"></div>
+          <div style="font-size:6.5px;color:var(--ox);margin-top:5px;font-weight:700">Ps 23:1</div>
+        </div>
+        <div class="ph-card" style="border-color:#C9C2B1">
+          <div class="ln" style="width:65%"></div>
+          <div class="prog"><i></i></div>
+          <div style="font-size:6.5px;color:#8B8272">Genesis 4 · 62%</div>
+        </div>
+        <div class="ph-chiprow"><div class="ph-chip"></div><div class="ph-chip"></div><div class="ph-chip"></div></div>
+        <div class="ph-tabs"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="scr-body">
+        <p>The daily hub. Verse of the Day card opens its full context in the reader; Continue Reading puts you back at your exact last verse; three quick actions below.</p>
+        <div class="nav-chips">
+          <span class="chip go">→ S-03 Reader</span>
+          <span class="chip go">→ S-06 Search</span>
+          <span class="chip go">→ S-07 Plans</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-03</p>
+        <h3 class="scr-name">Bible Reader</h3>
+        <p class="scr-owner">Tab 2 · root of the Bible stack</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-hd"><span>Genesis 4</span><span style="font-size:7px;border:1px solid var(--ox);color:var(--ox);border-radius:4px;padding:1px 4px">KJV</span></div>
+        <div class="ph-vs"><sup>1</sup><div class="col"><div class="ln" style="width:95%"></div><div class="ln" style="width:80%"></div></div></div>
+        <div class="ph-vs"><sup>2</sup><div class="col"><div class="ln" style="width:88%"></div><div class="ln" style="width:60%"></div></div></div>
+        <div class="ph-vs hl"><sup>3</sup><div class="col"><div class="ln ink" style="width:92%"></div><div class="ln ink" style="width:75%"></div></div></div>
+        <div class="ph-vs"><sup>4</sup><div class="col"><div class="ln" style="width:90%"></div></div></div>
+        <div class="ph-tabs"><i></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="scr-body">
+        <p>The heart of the app. Scrolling chapter text with superscript verse numbers; one highlighted verse shown in gold. Tap any verse to open the action sheet. Header holds the book·chapter switcher, the KJV chip, and a play control that streams the chapter from the open LibriVox recording.</p>
+        <div class="nav-chips">
+          <span class="chip go">→ S-04 Picker (modal)</span>
+          <span class="chip sheet">→ S-05 Verse sheet</span>
+          <span class="chip go">→ S-06 Search</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-04</p>
+        <h3 class="scr-name">Book &amp; Chapter Picker</h3>
+        <p class="scr-owner">Modal over S-03</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-chiprow"><div class="ph-chip" style="border-color:var(--ox)"></div><div class="ph-chip"></div></div>
+        <div class="ln" style="width:50%"></div>
+        <div class="ph-grid" style="margin-top:4px">
+          <i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i>
+        </div>
+        <div class="ln" style="width:40%;margin-top:6px"></div>
+        <div class="ph-grid" style="margin-top:4px">
+          <i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i>
+        </div>
+      </div>
+      <div class="scr-body">
+        <p>A full-screen modal: OT/NT toggle, scrollable book list, then a number grid of chapters. Current position is pre-marked. Choosing a chapter closes the modal straight back into the reader.</p>
+        <div class="nav-chips">
+          <span class="chip back">← returns to S-03</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-05</p>
+        <h3 class="scr-name">Verse Action Sheet</h3>
+        <p class="scr-owner">Bottom sheet over S-03</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ln" style="width:85%"></div>
+        <div class="ln" style="width:70%"></div>
+        <div class="sheet-mask"></div>
+        <div class="sheet">
+          <div class="handle"></div>
+          <div class="dots">
+            <i style="background:#E2B33C"></i><i style="background:#7FB069"></i><i style="background:#5B8DB8"></i><i style="background:#C97BA0"></i><i style="background:#9B8AC4"></i>
+          </div>
+          <div class="srow"><div class="ln" style="max-width:52px"></div><span style="font-size:6.5px;color:#8B8272">♡</span></div>
+          <div class="srow"><div class="ln" style="max-width:44px"></div><span style="font-size:6.5px;color:#8B8272">✎</span></div>
+          <div class="srow"><div class="ln" style="max-width:40px"></div><span style="font-size:6.5px;color:#8B8272">⧉</span></div>
+        </div>
+      </div>
+      <div class="scr-body">
+        <p>Tapping a verse slides this sheet up: five highlight colors, bookmark, note, copy and share-as-text. Everything saves locally. The highlighted verse shows its color immediately behind the text.</p>
+        <div class="nav-chips">
+          <span class="chip back">← dismiss back to S-03</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-06</p>
+        <h3 class="scr-name">Search</h3>
+        <p class="scr-owner">Pushed inside the Bible stack</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-chip" style="height:16px;border-radius:8px"></div>
+        <div class="ph-list" style="margin-top:8px">
+          <div class="ph-item"><div style="width:34px;height:12px;border:1px solid var(--ox);border-radius:3px;font-size:6px;color:var(--ox);display:grid;place-items:center">Jn 3:16</div><div class="col" style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ln" style="width:90%"></div><div class="ln" style="width:60%"></div></div></div>
+          <div class="ph-item"><div style="width:34px;height:12px;border:1px solid #C9C2B1;border-radius:3px;font-size:6px;color:#8B8272;display:grid;place-items:center">Rom 5:8</div><div class="col" style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ln" style="width:85%"></div></div></div>
+          <div class="ph-item"><div style="width:34px;height:12px;border:1px solid #C9C2B1;border-radius:3px;font-size:6px;color:#8B8272;display:grid;place-items:center">1Jn 4:9</div><div class="col" style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ln" style="width:75%"></div></div></div>
+        </div>
+        <div class="ph-tabs"><i></i><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="scr-body">
+        <p>Focused text search over the whole installed translation, with the search term highlighted in each snippet. Tapping a result pushes a fresh reader instance already scrolled to that verse.</p>
+        <div class="nav-chips">
+          <span class="chip back">← back to S-03</span>
+          <span class="chip go">→ S-03 at result verse</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-07</p>
+        <h3 class="scr-name">Plans</h3>
+        <p class="scr-owner">Tab 3 · root of the Plans stack</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-hd"><span>Plans</span><span class="ic"></span></div>
+        <div class="ph-thumb" style="width:100%;height:44px;border-radius:6px"></div>
+        <div class="ln" style="width:70%;margin-top:4px"></div>
+        <div class="ph-list" style="margin-top:4px">
+          <div class="ph-item"><div class="ph-thumb"></div><div class="col" style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ln" style="width:80%"></div><div class="ln ink" style="width:50%"></div></div></div>
+          <div class="ph-item"><div class="ph-thumb"></div><div class="col" style="flex:1;display:flex;flex-direction:column;gap:3px"><div class="ln" style="width:75%"></div><div class="prog" style="margin:2px 0 0"><i></i></div></div></div>
+        </div>
+        <div class="ph-tabs"><i></i><i></i><i class="on"></i><i></i></div>
+      </div>
+      <div class="scr-body">
+        <p>Featured plans on top, “My Plans” below with progress bars. Ships with 5 bundled plans — 3 short samples plus 2 yearly through-the-Bible tracks. Tapping any card — featured or yours — opens the plan detail.</p>
+        <div class="nav-chips">
+          <span class="chip go">→ S-08 Plan detail</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-08</p>
+        <h3 class="scr-name">Plan Detail</h3>
+        <p class="scr-owner">Pushed on the Plans stack</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-thumb" style="width:100%;height:36px;border-radius:6px"></div>
+        <div class="ln" style="width:60%;margin-top:4px"></div>
+        <div style="font-size:6.5px;color:#8B8272">21 days · 5 min/day</div>
+        <div class="ph-list" style="margin-top:4px">
+          <div class="ph-item"><span class="ph-check done"></span><div class="ln" style="flex:1;width:70%"></div></div>
+          <div class="ph-item"><span class="ph-check done"></span><div class="ln" style="flex:1;width:64%"></div></div>
+          <div class="ph-item"><span class="ph-check"></span><div class="ln" style="flex:1;width:72%"></div></div>
+          <div class="ph-item"><span class="ph-check"></span><div class="ln" style="flex:1;width:58%"></div></div>
+        </div>
+        <div class="ph-btn gold" style="margin-top:auto"></div>
+      </div>
+      <div class="scr-body">
+        <p>Cover, length, description, and the day-by-day list with completed days checked. One button does the right thing: “Start plan” or “Continue — Day 3”.</p>
+        <div class="nav-chips">
+          <span class="chip back">← back to S-07</span>
+          <span class="chip go">→ S-09 Today’s reading</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-09</p>
+        <h3 class="scr-name">Today’s Reading</h3>
+        <p class="scr-owner">Pushed on the Plans stack</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-hd"><span>Day 3 of 21</span><span class="ic"></span></div>
+        <div class="ln" style="width:88%"></div>
+        <div class="ln" style="width:92%"></div>
+        <div class="ln" style="width:64%"></div>
+        <div class="ph-chip" style="border-color:var(--gold);margin-top:6px;height:14px"></div>
+        <div class="ln" style="width:80%;margin-top:6px"></div>
+        <div class="ph-btn" style="margin-top:auto"></div>
+        <div class="ph-btn ghost"></div>
+      </div>
+      <div class="scr-body">
+        <p>The devotional text for the day, a gold chip linking the assigned Bible passage, and “Mark complete” — which checks the day and returns to the plan. The passage chip jumps into the reader.</p>
+        <div class="nav-chips">
+          <span class="chip back">← back to S-08</span>
+          <span class="chip go">→ S-03 Reader (passage)</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="scr-card">
+      <div class="scr-head">
+        <p class="scr-id">S-10</p>
+        <h3 class="scr-name">More &amp; Settings</h3>
+        <p class="scr-owner">Tab 4</p>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="notch"></div>
+        <div class="ph-hd"><span>More</span><span class="ic"></span></div>
+        <div class="srow" style="border:0"><span style="width:14px;height:14px;border-radius:50%;background:#CBB795"></span><div class="ln" style="max-width:56px"></div></div>
+        <div class="ph-list">
+          <div class="ph-item"><div class="ln" style="flex:1;width:58%"></div><span style="font-size:6.5px;color:var(--ox)">7</span></div>
+          <div class="ph-item"><div class="ln" style="flex:1;width:50%"></div><span style="font-size:6.5px;color:#8B8272">3</span></div>
+          <div class="ph-item"><div class="ln" style="flex:1;width:44%"></div><span style="font-size:6.5px;color:#8B8272">2</span></div>
+        </div>
+        <div style="border-top:1px solid #E2DBC9;margin-top:4px"></div>
+        <div class="srow"><div class="ln" style="max-width:52px"></div><span class="tgl on"></span></div>
+        <div class="srow"><div class="ln" style="max-width:44px"></div><span style="font-size:6.5px;color:#8B8272">Aa</span></div>
+        <div class="srow"><div class="ln" style="max-width:56px"></div><span style="font-size:6.5px;color:#8B8272">KJV ▾</span></div>
+        <div class="ph-tabs"><i></i><i></i><i></i><i class="on"></i></div>
+      </div>
+      <div class="scr-body">
+        <p>Your library at the top — highlights, bookmarks, notes with counts, each opening a simple list that jumps back to the verse. Below, settings: dark mode toggle, font size, default translation.</p>
+        <div class="nav-chips">
+          <span class="chip go">→ S-03 Reader (from saved verse)</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+  <hr class="rule">
+</section>
+
+<!-- ============ DECISIONS ============ -->
+<section id="decisions">
+  <p class="eyebrow">04 — Your call</p>
+  <h2>Decisions I need from you</h2>
+  <p class="lede" style="margin-bottom:26px">Each row has my default proposal. Reply with changes — or “defaults fine” — and I build exactly that.</p>
+  <div class="dec">
+    <div class="dec-head"><div>Question</div><div>Proposed default</div><div>Your suggestion</div></div>
+
+    <div class="dec-row">
+      <div class="dec-q">Which translations?</div>
+      <div class="dec-def"><b>KJV only</b> — public domain, bundled inside the app as JSON. No licensing, no API, fully offline.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">App language of the interface?</div>
+      <div class="dec-def"><b>English</b> UI and English KJV text throughout.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">Login / accounts?</div>
+      <div class="dec-def"><b>No login</b> in the MVP. Everything saved on the device (AsyncStorage/MMKV). Sync is a v2 add-on.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">Verse images (share graphics)?</div>
+      <div class="dec-def"><b>Out</b> of MVP. Share action copies the verse text only.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">Reading plans content?</div>
+      <div class="dec-def"><b>5 bundled plans</b> — 3 short samples (7-day Psalms, 21-day Gospels, 5-day Proverbs) <b>plus 2 yearly plans</b>: 365-day through-the-Bible tracks, one in canonical order and one blending OT + NT daily.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">Dark mode?</div>
+      <div class="dec-def"><b>Yes</b> — manual toggle in S-10, plus “follow system”.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">Audio Bible?</div>
+      <div class="dec-def"><b>In</b> — streamed from the open <b>LibriVox</b> KJV recording (public domain), one chapter at a time from a play control in the reader. Nothing bundled, nothing downloaded.</div>
+      <div class="dec-you">—</div>
+    </div>
+
+    <div class="dec-row">
+      <div class="dec-q">Visual identity of the app itself?</div>
+      <div class="dec-def"><b>Warm paper + oxblood + gold</b>, serif reading face — close to YouVersion’s warmth but not a copy.</div>
+      <div class="dec-you">—</div>
+    </div>
+  </div>
+  <hr class="rule">
+</section>
+
+<!-- ============ BUILD PLAN ============ -->
+<section id="plan">
+  <p class="eyebrow">05 — Build plan</p>
+  <h2>From scaffold to finished MVP</h2>
+  <p class="lede" style="margin-bottom:28px">Six phases, each leaving the app runnable so you can test as it grows.</p>
+  <div class="phases">
+    <div class="phase"><div class="pnum">1</div><h4>Scaffold</h4><p>Expo project, bottom tabs with the four roots, S-01 onboarding gate. All screens as stubs.</p></div>
+    <div class="phase"><div class="pnum">2</div><h4>Reader</h4><p>Bible text bundled as JSON, S-03 reader with verse numbers, S-04 picker, font-size setting.</p></div>
+    <div class="phase"><div class="pnum">3</div><h4>Verse actions</h4><p>S-05 sheet: highlights, bookmarks, notes persisted locally and rendered in the text.</p></div>
+    <div class="phase"><div class="pnum">4</div><h4>Search</h4><p>S-06 full-text search with snippets and jump-to-verse.</p></div>
+    <div class="phase"><div class="pnum">5</div><h4>Plans</h4><p>S-07 → S-08 → S-09 flow with progress tracking, passage links, and the 2 yearly plans.</p></div>
+    <div class="phase"><div class="pnum">6</div><h4>Polish</h4><p>S-10 settings, dark mode, LibriVox chapter audio in the reader, Home feed assembly, app icon and store-ready build.</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Bible App Blueprint — one page, ten screens, ready for your annotations. Once you reply to the “Your call” table, the build starts at Phase 1.</p>
+  </div>
+</footer>
+
+</body>
+</html>

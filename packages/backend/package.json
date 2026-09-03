@@ -1,0 +1,22 @@
+{
+  "name": "@openscripture/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./convex/_generated/api.js",
+  "types": "./convex/_generated/api.d.ts",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "codegen": "convex codegen",
+    "typecheck": "tsc --noEmit -p convex/tsconfig.json"
+  },
+  "dependencies": {
+    "@openscripture/core": "*",
+    "convex": "^1.45.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "@types/node": "^24.0.0"
+  }
+}
