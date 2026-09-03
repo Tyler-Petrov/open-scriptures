@@ -3,9 +3,13 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/crimson-pro": "^0.4.2",
     "@expo/ui": "~57.0.14",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.18",
+    "expo-audio": "^57.0.4",
     "expo-constants": "~57.0.16",
+    "expo-dev-client": "~57.0.16",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.2",
     "expo-glass-effect": "~57.0.1",
@@ -17,6 +21,7 @@
     "expo-symbols": "~57.0.2",
     "expo-system-ui": "~57.0.3",
     "expo-web-browser": "~57.0.2",
+    "onnxruntime-react-native": "^1.24.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -29,15 +34,25 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
+    "phone": "export PATH=/home/cachybox/Android/Sdk/platform-tools:$PATH && adb reverse tcp:8081 tcp:8081 && expo start --dev-client --localhost --android",
+    "phone:install": "export JAVA_HOME=/home/cachybox/.jdks/jdk-17.0.20.1+1 && export PATH=$JAVA_HOME/bin:/home/cachybox/Android/Sdk/platform-tools:$PATH && expo run:android --device",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "verify:audio": "node scripts/verify-audio.mjs",
+    "verify:native-ui": "node scripts/verify-native-ui.mjs",
+    "verify:sheets": "node scripts/verify-native-sheets.mjs",
+    "verify:word-press": "node scripts/verify-word-press.mjs",
+    "verify:word-sheet-loading": "node scripts/verify-word-sheet-loading.mjs",
+    "postinstall": "node scripts/patch-ort.js"
   },
   "private": true
 }

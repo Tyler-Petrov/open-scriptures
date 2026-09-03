@@ -1,0 +1,1 @@
+{"dim": 384, "count": 31102, "queryPrefix": "Represent this sentence for searching relevant passages: ", "inputs": ["input_ids", "attention_mask", "token_type_ids"], "output": "last_hidden_state", "lowercase": true}

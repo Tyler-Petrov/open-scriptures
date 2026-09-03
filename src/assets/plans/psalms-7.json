@@ -1,0 +1,70 @@
+{
+  "id": "psalms-7",
+  "title": "Seven Days in the Psalms",
+  "subtitle": "A week of prayer, honesty, and praise",
+  "description": "Seven days among the best-known psalms of David and Moses — two or three psalms a day, with a short devotional to pray through. You will cover the whole range of the Psalter: delight, wonder, shepherding, refuge, repentance, thanksgiving, mercy, and the last great doxology.",
+  "accent": "#7FB069",
+  "days": [
+    {
+      "day": 1,
+      "label": "Psalms 1–2",
+      "passages": [{ "book": "Psa", "from": 1, "to": 2 }],
+      "devotional": "Two roads run through the first psalm, and they end in different places. One is the way of the counsel of the ungodly, drifting from walking to standing to sitting, until a life has settled into scorn. The other is the way of the man who delights in the law of the LORD and meditates in it day and night. He is 'like a tree planted by the rivers of water' — planted, not wild; rooted where the water runs. His leaf does not wither, and what he does prospers. Psalm 2 then lifts our eyes from the individual to the nations. Kings rage, and rulers take counsel together against the LORD and against his Anointed. Heaven answers with laughter, and then with a decree: 'Thou art my Son; this day have I begotten thee.' The psalm ends where wisdom always ends — 'Blessed are all they that put their trust in him.' So the Psalter begins. It will teach you to pray honestly and praise boldly, but it starts by asking where you stand. Ask yourself today: whose counsel am I taking, and where is my delight?"
+    },
+    {
+      "day": 2,
+      "label": "Psalms 8, 19",
+      "passages": [
+        { "book": "Psa", "from": 8, "to": 8 },
+        { "book": "Psa", "from": 19, "to": 19 }
+      ],
+      "devotional": "David looks up, and the night sky answers back. 'When I consider thy heavens, the work of thy fingers, the moon and the stars, which thou hast ordained; what is man, that thou art mindful of him?' The question is not despairing; it is astonished. The God who set the moon in place has crowned a small creature with glory and honour and set him over the works of his hands. Psalm 19 then moves from the sky to the Scripture. The heavens declare God's glory without a word, in every language, every day; but only the law of the LORD speaks to the soul. It is perfect, sure, right, pure, clean, and true — more to be desired than gold, sweeter than honey. It does not merely inform David; it searches him: 'Cleanse thou me from secret faults.' Then he asks for acceptable words, and names the LORD his strength and his redeemer. Read these psalms outdoors if you can, or at least by a window. Let creation preach first, and let Scripture finish the sermon — the same God speaks in both, and both are for you."
+    },
+    {
+      "day": 3,
+      "label": "Psalms 23, 27",
+      "passages": [
+        { "book": "Psa", "from": 23, "to": 23 },
+        { "book": "Psa", "from": 27, "to": 27 }
+      ],
+      "devotional": "'The LORD is my shepherd; I shall not want.' Six short gifts follow, each a whole sermon: green pastures, still waters, a restored soul, the right path for his name's sake. Then the valley comes, and the psalm does not deny it. 'Yea, though I walk through the valley of the shadow of death, I will fear no evil: for thou art with me.' The pronouns change there — from he to thou — because in the dark, God is near. The table is prepared, the head is anointed, the cup runs over, and goodness and mercy follow all the days of this life, with a house at the end of the road. Psalm 27 carries the same confidence into threat: 'The LORD is my light and my salvation; whom shall I fear?' David wants one thing — to dwell in the house of the LORD all the days of his life, to behold the beauty of the LORD. He has not yet seen the answer, but he waits: 'Wait on the LORD: be of good courage.' Hold these two psalms together today — a shepherd for the valley, a light for the waiting."
+    },
+    {
+      "day": 4,
+      "label": "Psalms 46, 51",
+      "passages": [
+        { "book": "Psa", "from": 46, "to": 46 },
+        { "book": "Psa", "from": 51, "to": 51 }
+      ],
+      "devotional": "Psalm 46 was written for a city under siege, and it still holds. 'God is our refuge and strength, a very present help in trouble. Therefore will not we fear, though the earth be removed.' Mountains carry into the heart of the sea, waters roar, and yet there is a river — quiet, glad, easily missed — whose streams make the city of God rejoice. The refrain says it twice, 'The LORD of hosts is with us; the God of Jacob is our refuge,' and then gives the command every storm needs: 'Be still, and know that I am God.' Psalm 51 is a different kind of trouble — trouble we caused. After his sin with Bathsheba, David does not bargain or excuse himself. 'Have mercy upon me, O God.' He asks for what only God can give: a clean heart, a right spirit, the joy of salvation restored. And he learns what sacrifice really means: 'The sacrifices of God are a broken spirit: a broken and a contrite heart, O God, thou wilt not despise.' Refuge for the frightened, mercy for the fallen — the same LORD, present in both."
+    },
+    {
+      "day": 5,
+      "label": "Psalms 90, 100",
+      "passages": [
+        { "book": "Psa", "from": 90, "to": 90 },
+        { "book": "Psa", "from": 100, "to": 100 }
+      ],
+      "devotional": "Moses prays the oldest psalm, and it begins with a home: 'Lord, thou hast been our dwelling place in all generations.' Before the mountains were brought forth, before the earth was formed, from everlasting to everlasting, thou art God. Set against that eternity, a thousand years pass like yesterday, and our days are grass that flourishes in the morning and is cut down by evening. The prayer that follows is not gloomy but honest: 'So teach us to number our days, that we may apply our hearts unto wisdom.' Numbered days are not fearful days; they are deliberate ones. Then Psalm 100 answers with noise: 'Make a joyful noise unto the LORD, all ye lands.' Enter his gates with thanksgiving and his courts with praise; be thankful unto him, and bless his name. The ground of the joy is stated plainly: 'For the LORD is good; his mercy is everlasting; and his truth endureth to all generations.' One psalm teaches us to count our days; the other teaches us to spend them singing. Do both today — take stock, and give thanks."
+    },
+    {
+      "day": 6,
+      "label": "Psalms 103, 121",
+      "passages": [
+        { "book": "Psa", "from": 103, "to": 103 },
+        { "book": "Psa", "from": 121, "to": 121 }
+      ],
+      "devotional": "Psalm 103 is David preaching to his own soul: 'Bless the LORD, O my soul: and all that is within me, bless his holy name.' He lists the benefits like a man counting treasure: forgives iniquities, heals diseases, redeems from destruction, crowns with lovingkindness, satisfies the mouth with good things. Then the deeper reasons: he has not dealt with us after our sins; as far as the east is from the west, so far has he removed our transgressions from us; like as a father pitieth his children, so the LORD pitieth them that fear him. Psalm 121 is a traveller's psalm, sung on the road up to Jerusalem. 'I will lift up mine eyes unto the hills, from whence cometh my help.' The answer is not the hills but the Maker of the hills. He neither slumbers nor sleeps; he keeps you going out and coming in, from this time forth and even for evermore. Read them together and you hold the whole of confidence: mercy behind you, keeping ahead of you, and the LORD himself beneath it all."
+    },
+    {
+      "day": 7,
+      "label": "Psalms 139, 145, 150",
+      "passages": [
+        { "book": "Psa", "from": 139, "to": 139 },
+        { "book": "Psa", "from": 145, "to": 145 },
+        { "book": "Psa", "from": 150, "to": 150 }
+      ],
+      "devotional": "We end the week where David ended his: known. Psalm 139 opens the books of our lives: 'O LORD, thou hast searched me, and known me.' He knows our sitting down and rising up, our thought afar off, our path and our lying down; there is not a word in our tongue he does not know altogether. Where can we go from his Spirit? Heaven, hell, the wings of the morning, the darkness — everywhere, his hand leads and holds us. That is not surveillance; it is care. And David ends by inviting the search: 'Search me, O God, and know my heart: try me, and know my thoughts... and lead me in the way everlasting.' Psalm 145 then gives God his full portrait: gracious, full of compassion, slow to anger, of great mercy, good to all, near to all who call on him in truth. And Psalm 150 is the last word of the whole Psalter — praise him with trumpet, psaltery and harp, timbrel and dance, stringed instruments and organs, loud cymbals: 'Let every thing that hath breath praise the LORD.' You have breath. That is qualification enough. Praise him."
+    }
+  ]
+}

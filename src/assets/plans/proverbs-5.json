@@ -1,0 +1,39 @@
+{
+  "id": "proverbs-5",
+  "title": "Five Days of Proverbs",
+  "subtitle": "Wisdom for the week, from the fear of the LORD to the virtuous woman",
+  "description": "Five days in Proverbs, from the founding fear of the LORD to the great portrait of wisdom at work. Each day pairs a passage with a short devotional — for anyone who wants their decisions, speech, money, and work shaped by wisdom rather than impulse.",
+  "accent": "#C9A24B",
+  "days": [
+    {
+      "day": 1,
+      "label": "Proverbs 1–3",
+      "passages": [{ "book": "Pro", "from": 1, "to": 3 }],
+      "devotional": "The book sets its own thesis in the first chapter: 'The fear of the LORD is the beginning of knowledge: but fools despise wisdom and instruction.' Hear your father's instruction, my son; walk not in the way of the greedy, who run to shed innocent blood; wisdom cries aloud in the streets, and the simple refuse to turn. Chapter 2 makes the search personal: 'If thou criest after knowledge, and liftest up thy voice for understanding... then shalt thou understand the fear of the LORD, and find the knowledge of God.' Wisdom is not found by the casual; it is sought like silver. Chapter 3 gives the book's most quoted counsel: 'Trust in the LORD with all thine heart; and lean not unto thine own understanding. In all thy ways acknowledge him, and he shall direct thy paths.' It also gives the practical side of trust: honour the LORD with thy substance; do not despise his chastening; keep sound wisdom and discretion; do not withhold good from them to whom it is due, when it is in the power of thy hand. Five days begin here. Wisdom is not cleverness; it is the fear of the LORD turned into a way of walking."
+    },
+    {
+      "day": 2,
+      "label": "Proverbs 4",
+      "passages": [{ "book": "Pro", "from": 4, "to": 4 }],
+      "devotional": "'Hear, ye children, the instruction of a father, and attend to know understanding.' Chapter 4 is a father passing down what his own father taught him — three generations of counsel in one chapter. The heart of it is about the heart: 'Keep thy heart with all diligence; for out of it are the issues of life.' Not the face, not the reputation — the heart, the wellspring everything else flows from. So the chapter is full of motion words: attend, incline, go, walk, keep, avoid, turn not to the right hand nor to the left. 'Enter not into the path of the wicked, and go not in the way of evil men'; the way of the wicked is as darkness, and they know not at what they stumble. 'But the path of the just is as the shining light, that shineth more and more unto the perfect day.' Read the chapter as a walking lesson. Wisdom in Proverbs is not a philosophy to hold but a path to take, and the father's burden is simple: the path you choose today becomes the life you live in twenty years. Choose the shining one."
+    },
+    {
+      "day": 3,
+      "label": "Proverbs 8",
+      "passages": [{ "book": "Pro", "from": 8, "to": 8 }],
+      "devotional": "Chapter 8 lets Wisdom speak for herself, standing where the people pass — by the way, at the gates, at the entry of the city. 'Unto you, O men, I call; and my voice is to the sons of man.' She is not hiding; she is crying out in the open, and her instruction is better than silver, gold, and rubies — 'none of them can be compared with it.' Then she takes us back before creation: 'The LORD possessed me in the beginning of his way, before his works of old... When he prepared the heavens, I was there... Then I was by him, as one brought up with him: and I was daily his delight, rejoicing always before him; rejoicing in the habitable part of his earth.' Wisdom was God's companion in making the world; to walk in wisdom is to walk in step with how the world was made to run. She ends with the offer and the warning side by side: 'Whoso findeth me findeth life, and shall obtain favour of the LORD. But he that sinneth against me wrongeth his own soul: all they that hate me love death.' One day with Lady Wisdom is worth the whole week's walk."
+    },
+    {
+      "day": 4,
+      "label": "Proverbs 16",
+      "passages": [{ "book": "Pro", "from": 16, "to": 16 }],
+      "devotional": "Chapter 16 is a string of short weights — one line each, and nearly all of them about who is actually running your life. 'The preparations of the heart in man... is from the LORD.' 'Commit thy works unto the LORD, and thy thoughts shall be established.' Man plans, but 'the LORD weigheth the spirits.' Even a king's sentence is weighed: 'A divine sentence is in the lips of the king.' Two of its best lines are about roads: 'There is a way that seemeth right unto a man, but the end thereof are the ways of death,' and 'A man's heart deviseth his way: but the LORD directeth his steps.' Others are about speech: 'Pleasant words are as an honeycomb, sweet to the soul, and health to the bones.' And about trade: better it is to get wisdom than gold; better a little with righteousness than great revenues without right. The chapter assumes you are making plans this week — everyone is. Its counsel is not to stop planning but to hand the plans over: commit, weigh, and let the LORD direct the steps you have already devised. That is not passivity. It is the only planning that survives."
+    },
+    {
+      "day": 5,
+      "label": "Proverbs 31",
+      "passages": [{ "book": "Pro", "from": 31, "to": 31 }],
+      "devotional": "The last chapter of Proverbs begins with a mother's words to a king — do not give thy strength to wine, plead for the poor and needy — and then gives the famous portrait: the virtuous woman. 'Who can find a virtuous woman? for her price is far above rubies.' What follows is a record of competence: she works wool and flax, brings her food from afar, rises while it is yet night, buys a field and plants a vineyard with the fruit of her hands, girds her loins with strength, perceives that her merchandise is good, opens her mouth with wisdom, and looks well to the ways of her household. The heart of the portrait is in two lines: 'Strength and honour are her clothing; and she shall rejoice in time to come,' and the chapter's real conclusion — 'a woman that feareth the LORD, she shall be praised.' Notice what is not said: nothing about her beauty, her leisure, or her luck. 'Give her of the fruit of her hands; and let her own works praise her in the gates.' Whoever you are, the portrait is the same wisdom this week has taught: fear the LORD, work with your hands, open your mouth with wisdom, and let the praise come from others."
+    }
+  ]
+}
