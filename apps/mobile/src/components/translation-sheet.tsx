@@ -54,7 +54,7 @@ export default function TranslationSheet({
               disabled={blocked}
               accessibilityRole="button"
               accessibilityState={{ selected, disabled: blocked }}
-              accessibilityLabel={t.name}
+              accessibilityLabel={blocked ? `${t.name}, Coming Soon` : t.name}
               style={({ pressed }) => [
                 styles.row,
                 i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.line },
@@ -68,7 +68,7 @@ export default function TranslationSheet({
               <View style={styles.body}>
                 <Text style={[styles.name, { color: c.text }]}>{t.name}</Text>
                 <Text style={[styles.blurb, { color: c.subtext }]} numberOfLines={2}>
-                  {blocked ? status?.reason : t.blurb}
+                  {blocked ? "Coming Soon" : t.blurb}
                 </Text>
               </View>
               {selected ? <Icon name="check" size={20} color={c.ox} /> : null}
