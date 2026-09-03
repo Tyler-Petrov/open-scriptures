@@ -13,9 +13,10 @@ import {
 } from "@/components/ui";
 import { useTheme } from "@/lib/theme";
 import { useSettings } from "@/lib/settings";
+import { useTranslations } from "@/lib/scripture";
 
 const FACTS: { icon: "book" | "highlighter" | "calendar"; text: string }[] = [
-  { icon: "book", text: "KJV, NASB, NIV and ESV, one tap apart" },
+  { icon: "book", text: "Five Bible versions, one tap apart" },
   { icon: "highlighter", text: "Highlight verses and add your own notes" },
   { icon: "calendar", text: "Reading plans, from five days to a year" },
 ];
@@ -23,7 +24,10 @@ const FACTS: { icon: "book" | "highlighter" | "calendar"; text: string }[] = [
 export default function OnboardingScreen() {
   const { c } = useTheme();
   const { settings, update } = useSettings();
+  const translations = useTranslations();
   const [started, setStarted] = useState(false);
+  const selectedStatus = translations?.find((t) => t.id === settings.translation);
+  const canStart = selectedStatus?.available === true;
 
   const start = useCallback(() => {
     update({ onboarded: true });
@@ -31,7 +35,7 @@ export default function OnboardingScreen() {
   }, [update]);
 
   return (
-    <Screen style={styles.center}>
+    <Screen scroll contentStyle={styles.center}>
       <View style={styles.stack}>
         <LogoMark size={88} />
         <Text style={[styles.title, { color: c.text }]}>
@@ -60,18 +64,29 @@ export default function OnboardingScreen() {
         <View style={styles.pick}>
           <Text style={[styles.pickLabel, { color: c.subtext }]}>Read in</Text>
           <View style={styles.chips}>
-            {TRANSLATION_IDS.map((id) => (
-              <Chip
-                key={id}
-                label={id}
-                accent={settings.translation === id}
-                onPress={() => update({ translation: id })}
-              />
-            ))}
+            {TRANSLATION_IDS.map((id) => {
+              const status = translations?.find((t) => t.id === id);
+              const unavailable = translations !== undefined && status?.available !== true;
+              const disabled = translations === undefined || unavailable;
+              return (
+                <Chip
+                  key={id}
+                  label={unavailable ? `${id} · Soon` : id}
+                  accent={settings.translation === id}
+                  onPress={disabled ? undefined : () => update({ translation: id })}
+                  style={disabled ? styles.unavailableChip : undefined}
+                />
+              );
+            })}
           </View>
         </View>
 
-        <PrimaryButton label="Start reading" onPress={start} style={styles.button} />
+        <PrimaryButton
+          label="Start reading"
+          onPress={start}
+          disabled={!canStart}
+          style={styles.button}
+        />
         <Text style={[styles.footnote, { color: c.subtext }]}>
           {TRANSLATIONS[settings.translation].name} · Highlights and notes stay on this device
         </Text>
@@ -83,6 +98,7 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   center: {
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 28,
@@ -151,6 +167,9 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
     marginTop: 12,
+  },
+  unavailableChip: {
+    opacity: 0.45,
   },
   footnote: {
     fontSize: 12,

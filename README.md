@@ -17,6 +17,7 @@ docs/               Design blueprint and the licensing/caching notes for API.Bib
 | KJV  | Public domain dataset       | Convex                                | Permanent |
 | NASB | API.Bible                   | Convex, fetched on first read         | 14-day refresh, 30-day purge |
 | NIV  | API.Bible                   | Convex, fetched on first read         | 14-day refresh, 30-day purge |
+| NKJV | API.Bible                   | Convex, fetched on first read         | 14-day refresh, 30-day purge |
 | ESV  | Crossway ESV API            | Convex, fetched on every read         | Never                   |
 
 Every read goes through Convex, KJV included. Commentary and LibriVox verse timings also live in
@@ -46,8 +47,8 @@ Convex env vars (dashboard → Settings → Environment variables):
 
 | Var | Purpose |
 |-----|---------|
-| `API_BIBLE_KEY` | API.Bible application key |
-| `API_BIBLE_NASB_ID`, `API_BIBLE_NIV_ID` | Bible ids from the API.Bible dashboard once the translation agreements are accepted |
+| `API_BIBLE_KEY` | Shared API.Bible application key for NASB, NIV, and NKJV |
+| `API_BIBLE_NASB_ID`, `API_BIBLE_NIV_ID`, `API_BIBLE_NKJV_ID` | Bible ids from the API.Bible dashboard once the translation agreements are accepted |
 | `ESV_API_KEY` | Crossway ESV API key |
 | `APP_CLIENT_KEY` | Optional. When set, every call must carry the same value from `EXPO_PUBLIC_CLIENT_KEY` |
 

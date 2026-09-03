@@ -3,8 +3,8 @@ import type { Translation, TranslationId } from "@openscripture/core";
 
 export type ApiBibleConfig = { key: string; bibleId: string };
 
-/** API.Bible credentials for NASB/NIV. Bible ids come from the API.Bible
- * dashboard once the translation agreement is accepted. */
+/** All API.Bible translations share one key. Bible ids come from the
+ * API.Bible dashboard once each translation agreement is accepted. */
 export function apiBibleConfig(id: TranslationId): ApiBibleConfig | null {
   const key = process.env.API_BIBLE_KEY;
   const bibleId = process.env[`API_BIBLE_${id}_ID`];

@@ -14,7 +14,7 @@ const MAX_LIMIT = 200;
 
 /**
  * Exact-word search in the selected translation's own provider: the Convex
- * search index for bundled text, API.Bible's search for NASB/NIV, Crossway's
+ * search index for bundled text, API.Bible's search for NASB/NIV/NKJV, Crossway's
  * search for ESV.
  */
 export const exact = action({
