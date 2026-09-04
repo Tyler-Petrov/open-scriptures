@@ -21,7 +21,8 @@ docs/               Design blueprint and the licensing/caching notes for API.Bib
 | ESV  | Crossway ESV API            | Convex, fetched on every read         | Never                   |
 
 Every read goes through Convex, KJV included. Commentary and LibriVox verse timings also live in
-Convex. The mobile bundle keeps only the derived Strong's and semantic-search indexes.
+Convex. Strong's dictionaries, translation-specific word links, and occurrence indexes also live in
+Convex. The mobile bundle keeps only the derived semantic-search index.
 
 Rules that shaped this (full notes in `docs/scripture-api-context.md`):
 - API keys live only in Convex env vars and never reach the client.

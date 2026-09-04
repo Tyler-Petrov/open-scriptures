@@ -78,8 +78,8 @@ export default function TranslationSheet({
       </View>
 
       <Text style={[styles.footnote, { color: c.subtext }]}>
-        Highlights and notes follow the verse, so they carry across translations. Word study and
-        audio follow the King James text.
+        Highlights and notes follow the verse, so they carry across translations. Word study is available where this translation has linked words.
+        Audio follows the King James text.
       </Text>
     </SheetModal>
   );

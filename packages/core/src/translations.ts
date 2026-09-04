@@ -16,7 +16,7 @@ export type Translation = {
   offline: boolean;
   /** The server may keep a shared per-chapter cache of this text. */
   cacheable: boolean;
-  /** Strong's word study and LibriVox audio are aligned to KJV text only. */
+  /** LibriVox audio is aligned to KJV text only. Strong's availability comes from server alignments. */
   kjvFeatures: boolean;
   /** Full attribution shown under a chapter. */
   attribution: string;

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Build the on-device Strong's concordance data.
+"""Build the server Strong's concordance data.
 
-  python3 scripts/strongs/build-strongs.py
+  python3 packages/backend/scripts/build-strongs.py
 
 Sources (all public domain):
   kaiserlik/kjv            — KJV 1769 with inline [G####]/[H####] tags + lexicon
   openscriptures/strongs   — Strong's Hebrew & Greek dictionaries (JSON-in-JS)
 
-Outputs into src/assets/strongs/:
+Outputs into packages/backend/data/strongs/KJV/, with the shared dict.json one directory above:
   {BookName}.json  {"book":abbrev,"chapters":[[verse-spans|0,...],...]}
                    verse-spans = [[text, "G123"|0], ...] concat == source KJV verse
   dict.json        { code: {o,t,p,d,k,r,u,pos,l} }  (original, translit, pron,
@@ -17,12 +17,12 @@ Outputs into src/assets/strongs/:
 import html, json, re, subprocess, sys, time, unicodedata
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO / "scripts"))
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO.parents[1] / "apps/mobile/scripts"))
 from kjv_source import book_order, load_book
 
 CACHE = Path.home() / ".cache" / "strongs-src"
-OUT = REPO / "src" / "assets" / "strongs"
+OUT = REPO / "data" / "strongs" / "KJV"
 RAW = "https://raw.githubusercontent.com/kaiserlik/kjv/master"
 OS_HE = "https://raw.githubusercontent.com/openscriptures/strongs/master/hebrew/strongs-hebrew-dictionary.js"
 OS_GR = "https://raw.githubusercontent.com/openscriptures/strongs/master/greek/strongs-greek-dictionary.js"
@@ -252,8 +252,8 @@ def main():
             "pos": clean_kaiserlik(x.get("part_of_speech", "")),
             "l": lang,
         }
-    (OUT / "dict.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
-    log(f"dict.json: {len(out)} entries, {(OUT/'dict.json').stat().st_size/1e6:.1f} MB")
+    (OUT.parent / "dict.json").write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
+    log(f"dict.json: {len(out)} entries, {(OUT.parent/'dict.json').stat().st_size/1e6:.1f} MB")
     sizes = sum(f.stat().st_size for f in OUT.glob("*.json"))
     log(f"total assets: {sizes/1e6:.1f} MB")
 

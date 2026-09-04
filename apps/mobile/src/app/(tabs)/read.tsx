@@ -19,7 +19,7 @@ import { TRANSLATIONS } from "@openscripture/core";
 import { useChapter } from "@/lib/scripture";
 import { BOOK_AUDIO } from "@/lib/audio";
 import { getChapterTiming, useBookTimings } from "@/lib/timings";
-import { getVerseSpans } from "@/lib/strongs";
+import { linkedSpans, useStrongsChapter } from "@/lib/strongs";
 import { completedDays, getPlan, loadPlanProgress, markDayComplete } from "@/lib/plans";
 import {
   HIGHLIGHT_TINTS,
@@ -74,7 +74,9 @@ export default function ReadScreen() {
   const [selected, setSelected] = useState<number | null>(null);
   const [displayOpen, setDisplayOpen] = useState(false);
   const [bookOpen, setBookOpen] = useState(false);
-  const [wordSheet, setWordSheet] = useState<{ code: string; word: string } | null>(null);
+  const wordContext = `${settings.translation}.${pos.book}.${pos.chapter}`;
+  const [wordSheet, setWordSheet] = useState<{ code: string; word: string; context: string } | null>(null);
+  if (wordSheet && wordSheet.context !== wordContext) setWordSheet(null);
   const wordPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wordPressReleaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wordPressOpenedRef = useRef(false);
@@ -94,10 +96,10 @@ export default function ReadScreen() {
         wordPressTimerRef.current = null;
         wordPressOpenedRef.current = true;
         Vibration.vibrate(20);
-        setWordSheet({ code, word });
+        setWordSheet({ code, word, context: wordContext });
       }, WORD_PRESS_DELAY_MS);
     },
-    [clearWordPressTimers]
+    [clearWordPressTimers, wordContext]
   );
 
   const cancelWordPress = useCallback(() => {
@@ -156,7 +158,7 @@ export default function ReadScreen() {
         } catch {
           // vibration unsupported on this browser
         }
-        setWordSheet({ code: el.dataset.scode ?? "", word: el.textContent ?? "" });
+        setWordSheet({ code: el.dataset.scode ?? "", word: el.textContent ?? "", context: wordContext });
         clear();
       }, WORD_PRESS_DELAY_MS);
       document.addEventListener("pointermove", move);
@@ -164,8 +166,8 @@ export default function ReadScreen() {
       document.addEventListener("pointercancel", up);
     };
     document.addEventListener("pointerdown", down);
-    return () => document.removeEventListener("pointerdown", down);
-  }, []);
+    return () => { clear(); document.removeEventListener("pointerdown", down); };
+  }, [wordContext]);
   const [highlights, setHighlights] = useState<Highlights>({});
   const [planCtx, setPlanCtx] = useState<{ id: string; day: number } | null>(null);
   const [planDayDone, setPlanDayDone] = useState(false);
@@ -182,11 +184,15 @@ export default function ReadScreen() {
   const loadingRef = useRef(false);
   const bootedRef = useRef(false);
 
-  // Chapter text comes through Convex in the selected translation. Word
-  // study, audio and timings are aligned to the KJV text only.
+  // Chapter text and word links come through Convex for this translation.
+  // LibriVox audio and timings remain KJV-only.
   const translation = settings.translation;
   const tInfo = TRANSLATIONS[translation];
   const isKjv = tInfo.kjvFeatures;
+  const { state: strongsState, retry: retryStrongs } = useStrongsChapter(translation, pos.book, pos.chapter);
+  useEffect(() => {
+    clearWordPressTimers();
+  }, [translation, pos.book, pos.chapter, clearWordPressTimers]);
   const bookTimings = useBookTimings(pos.book, isKjv);
   const { state: chapterState, retry: retryChapter } = useChapter(translation, pos.book, pos.chapter);
   const loading = chapterState.status === "loading";
@@ -504,7 +510,7 @@ export default function ReadScreen() {
     const hl = highlights[verseKey];
     const tint = hl ? hexToRgba(HIGHLIGHT_TINTS[hl.color], isDark ? 0.38 : 0.42) : null;
     const hasNote = !!hl?.note;
-    const spans = isKjv ? getVerseSpans(pos.book, pos.chapter, index + 1) : null;
+    const spans = linkedSpans(item, strongsState.status === "ready" ? strongsState.data?.verses[index] : null);
     const emphasized = selected === index || flash === index;
     const isActive = activeVerse === index;
     return (
@@ -598,6 +604,12 @@ export default function ReadScreen() {
           />
         ) : null}
       </View>
+
+      {strongsState.status === "error" ? (
+        <Pressable onPress={retryStrongs} accessibilityRole="button">
+          <Text style={{ color: c.subtext, paddingHorizontal: 20, paddingVertical: 8 }}>Word study couldn’t load. Tap to retry.</Text>
+        </Pressable>
+      ) : null}
 
       {plan && planDay ? (
         <View style={styles.banner}>
@@ -790,8 +802,10 @@ export default function ReadScreen() {
           void load(book, chapter);
         }}
       />
-      {wordSheet ? (
+      {wordSheet?.context === wordContext ? (
         <WordSheet
+          key={`${translation}.${wordSheet.code}`}
+          translation={translation}
           code={wordSheet.code}
           word={wordSheet.word}
           onClose={() => setWordSheet(null)}

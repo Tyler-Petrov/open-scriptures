@@ -40,7 +40,8 @@ Recorded September 2, 2026 for Open Scripture (`apps/mobile` in `~/Projects/open
 - KJV requires a connection to Convex, like the other translations.
 - NASB, NIV, and NKJV can use a chapter-at-a-time shared server cache with a 14-day refresh and 30-day hard expiration.
 - ESV requires a network connection and should show an explicit unavailable message if Crossway cannot be reached. Do not silently replace it with KJV.
-- Strong's word interaction and existing LibriVox audio remain KJV-only.
+- Strong's dictionaries and word links are served by Convex. Alignments and occurrence indexes are keyed by translation; currently only verified KJV alignments are supplied. Never reuse KJV word positions for other translations. Store offsets and text fingerprints, not copyrighted verse text, in alignment records.
+- Existing LibriVox audio remains KJV-only.
 - Exact search should use the selected translation's provider.
 - Semantic search keeps its derived KJV vector index on-device, then fetches result text from Convex.
 - Highlights, notes, reading plans, and commentary remain attached to canonical verse references so they carry across translations.

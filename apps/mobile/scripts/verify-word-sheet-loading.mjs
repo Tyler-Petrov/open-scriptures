@@ -11,24 +11,24 @@ const expect = (condition, message) => {
 };
 
 expect(
-  sheet.includes("Suspense") && sheet.includes("fallback={<WordReferencesFallback"),
-  "Word references must render behind a Suspense fallback."
+  sheet.includes("useStrongsEntry(code)") && sheet.includes("useStrongsOccurrences(translation, code)"),
+  "Word study and references must subscribe to server queries."
 );
 expect(
   sheet.includes("ActivityIndicator") && sheet.includes("Loading verse references"),
   "The references fallback must show a labeled native spinner."
 );
 expect(
-  sheet.includes("use(getOccurrencesAsync(code))"),
-  "The reference component must suspend on the occurrence lookup."
+  sheet.includes('state.status === "loading"') && sheet.includes('state.status === "error"'),
+  "Server lookups must distinguish loading from errors."
 );
 expect(
   !sheet.includes("getOccurrences(code)"),
   "WordSheet must not run the occurrence lookup synchronously."
 );
 expect(
-  strongs.includes("export function getOccurrencesAsync") && strongs.includes("setTimeout"),
-  "The occurrence lookup must yield before loading and cache its Promise."
+  !strongs.includes("assets/strongs") && strongs.includes("api.strongs.occurrences"),
+  "The occurrence lookup must use Convex without loading bundled datasets."
 );
 
 if (failures.length) {
@@ -36,4 +36,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("Word-sheet content renders before its deferred verse references.");
+console.log("Word-sheet lookups use server queries with loading and error states.");
