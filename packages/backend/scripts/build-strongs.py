@@ -120,7 +120,11 @@ def token_codes(tagged):
     carry = 0
     for i in range(len(tokens) - 1, -1, -1):
         w, c, it = tokens[i]
-        if c:
+        if it:
+            # Supplied English stays italic but has no original-language link.
+            # Ignore even explicit tags here; they must not spread to neighbors.
+            tokens[i] = (w, 0, it)
+        elif c:
             carry = c
         elif carry:
             tokens[i] = (w, carry, it)

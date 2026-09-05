@@ -49,6 +49,22 @@ try {
   await page.getByText(`Genesis · ${genCount} verses`, { exact: true }).click();
   await page.getByRole("link", { name: "Genesis 1:1", exact: true }).click();
   await page.getByRole("button", { name: "Study H853", exact: true }).waitFor({ state: "hidden" });
+  // Genesis 1:2 has a supplied second "was". Older server records may still
+  // contain its code; the reader must keep the italics and suppress that link.
+  const supplied = page.getByRole("button", { name: "Verse 2", exact: true }).getByText("was", { exact: true }).last();
+  await supplied.scrollIntoViewIfNeeded();
+  // The app loads a dedicated italic font face, rather than CSS font-style.
+  assert.match(await supplied.evaluate(el => getComputedStyle(el).fontFamily), /CrimsonPro_400Regular_Italic/);
+  assert.equal(await supplied.evaluate(el => el.closest("[data-scode]") !== null), false);
+  const suppliedBox = await supplied.boundingBox();
+  assert.ok(suppliedBox);
+  await page.mouse.move(suppliedBox.x + suppliedBox.width / 2, suppliedBox.y + suppliedBox.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+  assert.equal(await page.getByText("KJV word links", { exact: true }).count(), 0);
+  await page.screenshot({ path: `${dir}/supplied-word.png` });
+  console.log("Supplied 'was' remains italic, has no word-link target, and cannot open a Strong's entry.");
   assert.deepEqual(errors, []);
   await context.close();
   console.log(`Recording: ${await page.video().path()}`);

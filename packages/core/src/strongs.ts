@@ -66,8 +66,10 @@ export function linkedSpans(text: string, alignment: VerseLinks | null | undefin
     const start = offsets[i - 1];
     const end = offsets[i];
     const covering = links.filter(link => link.start <= start && link.end >= end);
-    const codes = [...new Set(covering.flatMap(link => link.codes))];
-    spans.push([text.slice(start, end), codes.length ? codes : 0, covering.some(link => link.supplied) ? 1 : 0]);
+    const supplied = covering.some(link => link.supplied);
+    // Supplied text overrides even older records and overlapping phrase links.
+    const codes = supplied ? [] : [...new Set(covering.flatMap(link => link.codes))];
+    spans.push([text.slice(start, end), codes.length ? codes : 0, supplied ? 1 : 0]);
   }
   return spans.length ? spans : null;
 }

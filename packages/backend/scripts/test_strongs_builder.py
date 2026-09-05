@@ -16,10 +16,18 @@ class SourceTagsTest(unittest.TestCase):
         tokens, _ = builder.token_codes("word[G1] [G2][G3]")
         self.assertEqual(tokens[0][1], ["G1", "G2", "G3"])
 
-    def test_phrase_and_supplied_word_keep_codes(self):
+    def test_supplied_word_has_no_codes(self):
         tokens, _ = builder.token_codes("<em>did</em> understand[G1][G2]")
         spans = builder.project_spans("did understand", tokens)
-        self.assertEqual(spans, [["did", ["G1", "G2"], 1], [" ", 0], ["understand", ["G1", "G2"]]])
+        self.assertEqual(spans, [["did", 0, 1], [" ", 0], ["understand", ["G1", "G2"]]])
+
+    def test_phrase_links_skip_supplied_words_and_their_explicit_tags(self):
+        tokens, _ = builder.token_codes("a <em>supplied[G3]</em> phrase[G1][G2]")
+        self.assertEqual(tokens, [("a", ["G1", "G2"], 0), ("supplied", 0, 1), ("phrase", ["G1", "G2"], 0)])
+
+    def test_whole_supplied_phrase_and_detached_tags_have_no_links(self):
+        tokens, _ = builder.token_codes("<em>was there</em>[G3]")
+        self.assertEqual(tokens, [("was", 0, 1), ("there", 0, 1)])
 
     def test_mismatched_text_is_not_rewritten(self):
         tokens, _ = builder.token_codes("different[G1][G2]")

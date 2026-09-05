@@ -24,6 +24,11 @@ test("every migrated verse preserves the exact source text, codes, and italics",
         if (spans === 0) { assert.equal(row.verses[vi], null); return; }
         const text = spans.map(s => s[0]).join("");
         const rendered = linkedSpans(text, row.verses[vi]);
+        for (const span of spans.filter(s => s[2] === 1)) assert.equal(span[1], 0);
+        for (const link of row.verses[vi].links.filter(l => l.supplied)) {
+          assert.deepEqual(link.codes, []);
+          assert.equal(link.sourceWordIds, undefined);
+        }
         assert.equal(rendered.map(s => s[0]).join(""), text);
         assert.deepEqual(rendered.filter(s => s[1] || s[2]).map(s => [s[0], s[1], s[2] || 0]), spans.filter(s => s[1] || s[2]).map(s => [s[0], s[1], s[2] || 0]));
         assert.equal(linkedSpans(text + "!", row.verses[vi]), null);
@@ -124,4 +129,50 @@ test("old single-code server records remain readable during deployment", () => {
     { start: 2, end: 6, code: "G1", supplied: false },
   ] });
   assert.deepEqual(spans, [["a", 0, 1], [" ", 0, 0], ["word", ["G1"], 0]]);
+});
+
+test("supplied words override overlapping phrase links, including legacy records", () => {
+  const text = "did understand";
+  for (const tag of [{ code: "G3" }, { codes: ["G3", "G4"] }]) {
+    const spans = linkedSpans(text, { fingerprint: textFingerprint(text), links: [
+      { start: 0, end: text.length, codes: ["G1", "G2"], supplied: false },
+      { start: 0, end: 3, ...tag, supplied: true },
+    ] });
+    assert.deepEqual(spans, [["did", 0, 1], [" understand", ["G1", "G2"], 0]]);
+  }
+});
+
+test("imports remove supplied-word links and occurrences while preserving phrase source IDs", () => {
+  const fixture = mkdtempSync(resolve(tmpdir(), "strongs-supplied-"));
+  try {
+    const verse = {
+      text: "one added two",
+      sourceWords: [{ id: "a", codes: ["G1", "G2"] }, { id: "b", codes: ["G3"] }],
+      links: [
+        { start: 0, end: 13, sourceWordIds: ["a"] },
+        { start: 4, end: 9, sourceWordIds: ["b"], supplied: true },
+      ],
+    };
+    const compact = [["supplied", ["H1", "H2"], 1], [" word", "H3"]];
+    const write = () => writeFileSync(resolve(fixture, "Obadiah.json"), JSON.stringify({ book: "Oba", chapters: [[verse, compact]] }));
+    write();
+    const load = () => prepareStrongs({ input: fixture, dictionary, translation: "NIV", source: "synthetic fixture" });
+    const data = load();
+    const links = data.strongsChapters[0].verses[0].links;
+    assert.deepEqual(links.filter(l => !l.supplied).map(l => [l.start, l.end, l.sourceWordIds]), [[0, 4, ["a"]], [9, 13, ["a"]]]);
+    for (const alignment of data.strongsChapters[0].verses) {
+      for (const link of alignment.links.filter(l => l.supplied)) {
+        assert.deepEqual(link.codes, []);
+        assert.equal(link.sourceWordIds, undefined);
+      }
+    }
+    assert.deepEqual(data.strongsOccurrences.map(r => r.code), ["G1", "G2", "H3"]);
+    assert.deepEqual(linkedSpans(verse.text, data.strongsChapters[0].verses[0]), [
+      ["one ", ["G1", "G2"], 0], ["added", 0, 1], [" two", ["G1", "G2"], 0],
+    ]);
+    // Rich imports can mark supplied text without inventing an original word.
+    verse.links[1].sourceWordIds = [];
+    write();
+    assert.deepEqual(load().strongsOccurrences, data.strongsOccurrences);
+  } finally { rmSync(fixture, { recursive: true }); }
 });

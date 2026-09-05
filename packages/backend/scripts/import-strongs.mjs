@@ -12,6 +12,26 @@ const backend = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const codePattern = STRONGS_CODE_PATTERN;
 const readJson = path => JSON.parse(readFileSync(path, "utf8"));
 
+/** Remove supplied ranges from every original-word link, retaining source IDs
+ * on the surviving phrase pieces and a separate italic annotation. */
+function excludeSuppliedLinks(links) {
+  const supplied = links.filter(link => link.supplied);
+  return links.flatMap(link => {
+    if (link.supplied) return [{ start: link.start, end: link.end, codes: [], supplied: true }];
+    let pieces = [link];
+    for (const range of supplied) {
+      pieces = pieces.flatMap(piece => {
+        if (range.end <= piece.start || range.start >= piece.end) return [piece];
+        return [
+          ...(piece.start < range.start ? [{ ...piece, end: range.start }] : []),
+          ...(piece.end > range.end ? [{ ...piece, start: range.end }] : []),
+        ];
+      });
+    }
+    return pieces;
+  });
+}
+
 /** Accept only a translation's independently verified source spans. No projection
  * from KJV onto other translations. Output contains offsets, never verse text. */
 export function prepareStrongs({ input, translation, source, dictionary }) {
@@ -57,11 +77,12 @@ export function prepareStrongs({ input, translation, source, dictionary }) {
           });
           const words = new Map(sourceWords.map(word => [word.id, word]));
           links = spans.links.map(link => {
-            if (!link || !Array.isArray(link.sourceWordIds) || !link.sourceWordIds.length ||
+            if (!link || !Array.isArray(link.sourceWordIds) || (!link.sourceWordIds.length && link.supplied !== true) ||
               link.sourceWordIds.some(id => typeof id !== "string" || !words.has(id)) ||
               (link.supplied !== undefined && typeof link.supplied !== "boolean")) throw Error("Invalid original-word link");
             const sourceWordIds = [...new Set(link.sourceWordIds)];
-            return { start: link.start, end: link.end, supplied: link.supplied ?? false, sourceWordIds,
+            return { start: link.start, end: link.end, supplied: link.supplied ?? false,
+              ...(sourceWordIds.length ? { sourceWordIds } : {}),
               codes: [...new Set(sourceWordIds.flatMap(id => words.get(id).codes))] };
           });
         } else {
@@ -78,6 +99,8 @@ export function prepareStrongs({ input, translation, source, dictionary }) {
         }
         const alignment = { fingerprint: textFingerprint(text), links, ...(sourceWords ? { sourceWords } : {}) };
         if (linkedSpans(text, alignment)?.map(s => s[0]).join("") !== text) throw Error("Invalid alignment or changed Scripture text");
+        links = excludeSuppliedLinks(links);
+        alignment.links = links;
         const seen = new Set(links.flatMap(link => link.codes));
         for (const code of seen) {
           const keys = occurrences.get(code) ?? [];

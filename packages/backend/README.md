@@ -130,13 +130,20 @@ are preserved when supplied; the KJV tag source does not identify original-word 
 so its importer does not invent those IDs or inflected forms. The English `text` field is used
 only to validate offsets and compute the fingerprint; it is not stored in alignment records.
 
+Translator-supplied text keeps its italic flag but has no Strong's code or source-word link.
+For a rich import, mark its range with `supplied: true` and `sourceWordIds: []`. The importer
+removes that range from overlapping phrase links and builds reference indexes from the remaining
+links. The reader also suppresses supplied-word links in older server records. Existing server
+reference indexes need migration or reimport to reflect these removals.
+
 Run the source-tag regression tests with
 `python packages/backend/scripts/test_strongs_builder.py`. Regenerate only the KJV links with
 `python packages/backend/scripts/build-strongs.py --alignments-only` to preserve the shared lexicon.
 
 A browser regression test records opening a real multi-code word, switching dictionary entries,
 checking each entry's reference count, navigating to an occurrence, and dismissing the sheet.
-It also verifies that ordinary verse words are not italicized. It requires Playwright, the local
+It also verifies that ordinary verse words are not italicized and that the supplied "was" in
+Genesis 1:2 remains italic with no Strong's interaction. It requires Playwright, the local
 backend seeded with KJV chapter text plus Strong's data, and Expo running on port 8082 with
 `EXPO_PUBLIC_CONVEX_URL=http://127.0.0.1:3210`:
 
@@ -145,8 +152,8 @@ backend seeded with KJV chapter text plus Strong's data, and Expo running on por
 node packages/backend/scripts/strongs-browser.mjs
 ```
 
-The current KJV rebuild maps 30,360 of 31,102 verses and contains 3,901 multi-code spans.
-A full comparison against the first PR revision preserved verse text, coverage, existing word
-codes, and supplied-word italics. Reference counts describe the available links in this dataset,
+The current KJV rebuild maps 30,360 of 31,102 verses and contains 3,719 multi-code spans.
+Removing supplied-word links cleared 14,220 previously linked spans. A full comparison preserves
+verse text, coverage, and each word's italic flag. Reference counts describe the available links in this dataset,
 not an independently complete concordance. See `docs/strongs-data-sources.md` for provenance,
 BLB's documented approach, and standards and open-data options.

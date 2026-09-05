@@ -38,6 +38,8 @@ be checked separately from permission to use tagging data.
 The current KJV source remains `kaiserlik/kjv`, aligned to the project's `aruljohn/Bible-kjv`
 text. The shared dictionary remains the existing merged dataset. The source builder's phrase
 propagation is inherited behavior, not an independently reviewed linguistic alignment. It now
-preserves all tags instead of dropping every tag after the first. Other translations require
+preserves multiple tags on linked words instead of dropping every tag after the first.
+Translator-supplied italic words are excluded from links and occurrence indexes, including
+when a phrase link overlaps them. Other translations require
 verified mappings for the exact edition. Merely putting Hebrew/Greek and English together,
 or matching similar English words, does not supply those mappings.
