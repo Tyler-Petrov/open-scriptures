@@ -1,7 +1,19 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { chapterLinks, entryValue, translationId } from "./lib/strongs";
 
 export default defineSchema({
+  // Shared lexicon. No translation text is stored in the alignment tables.
+  strongsEntries: defineTable({ code: v.string(), entry: entryValue }).index("by_code", ["code"]),
+  strongsChapters: defineTable({
+    translation: translationId, book: v.string(), chapter: v.number(),
+    source: v.string(), verses: chapterLinks,
+  }).index("by_translation_and_book_and_chapter", ["translation", "book", "chapter"]),
+  // One bounded canonical corpus per code; importer checks the document limit.
+  strongsOccurrences: defineTable({
+    translation: translationId, code: v.string(), keys: v.array(v.string()),
+  }).index("by_translation_and_code", ["translation", "code"]),
+
   // Public-domain text stored permanently in Convex (KJV today).
   bundledChapters: defineTable({
     translation: v.string(),

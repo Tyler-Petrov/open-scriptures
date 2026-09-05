@@ -19,7 +19,7 @@ import { TRANSLATIONS } from "@openscripture/core";
 import { useChapter } from "@/lib/scripture";
 import { BOOK_AUDIO } from "@/lib/audio";
 import { getChapterTiming, useBookTimings } from "@/lib/timings";
-import { getVerseSpans } from "@/lib/strongs";
+import { linkedSpans, useStrongsChapter } from "@/lib/strongs";
 import { completedDays, getPlan, loadPlanProgress, markDayComplete } from "@/lib/plans";
 import {
   HIGHLIGHT_TINTS,
@@ -74,7 +74,9 @@ export default function ReadScreen() {
   const [selected, setSelected] = useState<number | null>(null);
   const [displayOpen, setDisplayOpen] = useState(false);
   const [bookOpen, setBookOpen] = useState(false);
-  const [wordSheet, setWordSheet] = useState<{ code: string; word: string } | null>(null);
+  const wordContext = `${settings.translation}.${pos.book}.${pos.chapter}`;
+  const [wordSheet, setWordSheet] = useState<{ codes: string[]; word: string; context: string } | null>(null);
+  if (wordSheet && wordSheet.context !== wordContext) setWordSheet(null);
   const wordPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wordPressReleaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wordPressOpenedRef = useRef(false);
@@ -87,17 +89,17 @@ export default function ReadScreen() {
   }, []);
 
   const beginWordPress = useCallback(
-    (code: string, word: string) => {
+    (codes: string[], word: string) => {
       clearWordPressTimers();
       wordPressOpenedRef.current = false;
       wordPressTimerRef.current = setTimeout(() => {
         wordPressTimerRef.current = null;
         wordPressOpenedRef.current = true;
         Vibration.vibrate(20);
-        setWordSheet({ code, word });
+        setWordSheet({ codes, word, context: wordContext });
       }, WORD_PRESS_DELAY_MS);
     },
-    [clearWordPressTimers]
+    [clearWordPressTimers, wordContext]
   );
 
   const cancelWordPress = useCallback(() => {
@@ -156,7 +158,12 @@ export default function ReadScreen() {
         } catch {
           // vibration unsupported on this browser
         }
-        setWordSheet({ code: el.dataset.scode ?? "", word: el.textContent ?? "" });
+        try {
+          const codes: unknown = JSON.parse(el.dataset.scode ?? "[]");
+          if (Array.isArray(codes) && codes.length && codes.every(code => typeof code === "string" && /^[GH][1-9][0-9]{0,4}[a-zA-Z]?$/.test(code))) {
+            setWordSheet({ codes, word: el.textContent ?? "", context: wordContext });
+          }
+        } catch { /* Ignore elements without valid word-study data. */ }
         clear();
       }, WORD_PRESS_DELAY_MS);
       document.addEventListener("pointermove", move);
@@ -164,8 +171,8 @@ export default function ReadScreen() {
       document.addEventListener("pointercancel", up);
     };
     document.addEventListener("pointerdown", down);
-    return () => document.removeEventListener("pointerdown", down);
-  }, []);
+    return () => { clear(); document.removeEventListener("pointerdown", down); };
+  }, [wordContext]);
   const [highlights, setHighlights] = useState<Highlights>({});
   const [planCtx, setPlanCtx] = useState<{ id: string; day: number } | null>(null);
   const [planDayDone, setPlanDayDone] = useState(false);
@@ -182,11 +189,15 @@ export default function ReadScreen() {
   const loadingRef = useRef(false);
   const bootedRef = useRef(false);
 
-  // Chapter text comes through Convex in the selected translation. Word
-  // study, audio and timings are aligned to the KJV text only.
+  // Chapter text and word links come through Convex for this translation.
+  // LibriVox audio and timings remain KJV-only.
   const translation = settings.translation;
   const tInfo = TRANSLATIONS[translation];
   const isKjv = tInfo.kjvFeatures;
+  const { state: strongsState, retry: retryStrongs } = useStrongsChapter(translation, pos.book, pos.chapter);
+  useEffect(() => {
+    clearWordPressTimers();
+  }, [translation, pos.book, pos.chapter, clearWordPressTimers]);
   const bookTimings = useBookTimings(pos.book, isKjv);
   const { state: chapterState, retry: retryChapter } = useChapter(translation, pos.book, pos.chapter);
   const loading = chapterState.status === "loading";
@@ -504,7 +515,7 @@ export default function ReadScreen() {
     const hl = highlights[verseKey];
     const tint = hl ? hexToRgba(HIGHLIGHT_TINTS[hl.color], isDark ? 0.38 : 0.42) : null;
     const hasNote = !!hl?.note;
-    const spans = isKjv ? getVerseSpans(pos.book, pos.chapter, index + 1) : null;
+    const spans = linkedSpans(item, strongsState.status === "ready" ? strongsState.data?.verses[index] : null);
     const emphasized = selected === index || flash === index;
     const isActive = activeVerse === index;
     return (
@@ -526,7 +537,7 @@ export default function ReadScreen() {
             spans.map((sp, i) => {
               const t = sp[0];
               const code = sp[1];
-              const supplied = sp.length > 2 ? styles.supplied : null;
+              const supplied = sp[2] === 1 ? styles.supplied : null;
               return code ? (
                 <Text
                   key={i}
@@ -536,10 +547,10 @@ export default function ReadScreen() {
                       // clicks, so the web span stays inert: the row handles
                       // taps and the document-level listener handles long presses
                       // via this data attribute.
-                      ({ dataSet: { scode: String(code) } } as object)
+                      ({ dataSet: { scode: JSON.stringify(code) } } as object)
                     : {
                         onPress: () => selectVerse(index),
-                        onPressIn: () => beginWordPress(String(code), t),
+                        onPressIn: () => beginWordPress(code, t),
                         onPressOut: cancelWordPress,
                       })}
                   style={[tint ? { backgroundColor: tint } : styles.taggedWord, supplied]}
@@ -598,6 +609,12 @@ export default function ReadScreen() {
           />
         ) : null}
       </View>
+
+      {strongsState.status === "error" ? (
+        <Pressable onPress={retryStrongs} accessibilityRole="button">
+          <Text style={{ color: c.subtext, paddingHorizontal: 20, paddingVertical: 8 }}>Word study couldn’t load. Tap to retry.</Text>
+        </Pressable>
+      ) : null}
 
       {plan && planDay ? (
         <View style={styles.banner}>
@@ -790,9 +807,11 @@ export default function ReadScreen() {
           void load(book, chapter);
         }}
       />
-      {wordSheet ? (
+      {wordSheet?.context === wordContext ? (
         <WordSheet
-          code={wordSheet.code}
+          key={`${translation}.${wordSheet.codes.join(".")}`}
+          translation={translation}
+          codes={wordSheet.codes}
           word={wordSheet.word}
           onClose={() => setWordSheet(null)}
         />

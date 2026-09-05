@@ -1,7 +1,7 @@
 // Scripture text in any translation, served through Convex.
 //
 // Everything goes through the backend, including KJV. The mobile bundle keeps
-// only derived Strong's and semantic-search indexes.
+// only the derived semantic-search index.
 
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "convex/react";

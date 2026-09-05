@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Collapsible, Column, Host, RNHostView } from "@expo/ui";
 import { useTheme, type Palette } from "@/lib/theme";
 import { BOOKS, ref as refLabel } from "@/lib/bible";
 import { goToVerse } from "@/lib/annotations";
-import { getEntry, getOccurrences } from "@/lib/strongs";
+import { useStrongsEntry, useStrongsOccurrences } from "@/lib/strongs";
+import type { TranslationId } from "@openscripture/core";
 import { READ_FONT, READ_FONT_SEMI } from "@/components/ui";
 import SheetModal, { SheetScrollView } from "@/components/sheet-modal";
 
@@ -57,6 +58,7 @@ function groupOccurrences(verseKeys: string[]): OccurrenceBook[] {
 type WordStyles = ReturnType<typeof wordStyles>;
 
 type WordReferencesProps = {
+  translation: TranslationId;
   code: string;
   c: Palette;
   isDark: boolean;
@@ -65,20 +67,45 @@ type WordReferencesProps = {
 };
 
 function WordReferences({
+  translation,
   code,
   c,
   isDark,
   styles,
   onOpenOccurrence,
 }: WordReferencesProps) {
-  const occurrences = useMemo(() => getOccurrences(code), [code]);
-  const occurrenceBooks = useMemo(() => groupOccurrences(occurrences), [occurrences]);
+  const { state, retry } = useStrongsOccurrences(translation, code);
+  const occurrences = state.status === "ready" ? state.data : [];
+  const occurrenceBooks = useMemo(
+    () => groupOccurrences(state.status === "ready" ? state.data : []),
+    [state]
+  );
   const [openBook, setOpenBook] = useState<string | null>(null);
+
+  if (state.status === "loading") {
+    return (
+      <View>
+        <ActivityIndicator color={c.ox} />
+        <Text style={styles.body}>Loading verse references…</Text>
+      </View>
+    );
+  }
+  if (state.status === "error") {
+    return (
+      <View>
+        <Text style={styles.body}>{state.message}</Text>
+        <Text accessibilityRole="button" onPress={retry} style={styles.referenceLink}>
+          Retry verse references
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <>
+      <Text style={styles.label}>{translation} word links</Text>
       <Text style={styles.label}>
-        Appears in {occurrences.length.toLocaleString("en-US")}{" "}
+        Linked in {occurrences.length.toLocaleString("en-US")}{" "}
         {occurrences.length === 1 ? "verse" : "verses"} across {occurrenceBooks.length}{" "}
         {occurrenceBooks.length === 1 ? "book" : "books"}
       </Text>
@@ -138,16 +165,19 @@ function WordReferences({
 }
 
 export type WordSheetProps = {
-  code: string;
+  translation: TranslationId;
+  codes: string[];
   word: string;
   onClose: () => void;
 };
 
-/** Long-press word sheet: the original Greek/Hebrew/Aramaic behind a KJV word. */
-export default function WordSheet({ code, word, onClose }: WordSheetProps) {
+/** Long-press word sheet: the original Greek/Hebrew/Aramaic behind a linked word. */
+export default function WordSheet({ translation, codes, word, onClose }: WordSheetProps) {
   const { c, isDark } = useTheme();
+  const [code, setCode] = useState(codes[0]);
   const insets = useSafeAreaInsets();
-  const entry = useMemo(() => getEntry(code), [code]);
+  const { state, retry } = useStrongsEntry(code);
+  const entry = state.status === "ready" ? state.data : null;
   const styles = wordStyles(c, insets.bottom);
 
   const openOccurrence = (verseKey: string) => {
@@ -181,6 +211,26 @@ export default function WordSheet({ code, word, onClose }: WordSheetProps) {
               </Text>
             </View>
 
+            {codes.length > 1 ? (
+              <View style={styles.wordChoices}>
+                <Text style={styles.body}>This phrase links to {codes.length} Strong’s entries. Select one to study.</Text>
+                <View style={styles.codeChoices}>
+                  {codes.map(candidate => (
+                    <Pressable
+                      key={candidate}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Study ${candidate}`}
+                      accessibilityState={{ selected: candidate === code }}
+                      onPress={() => setCode(candidate)}
+                      style={[styles.codeChoice, candidate === code && styles.codeChoiceSelected]}
+                    >
+                      <Text style={styles.referenceLink}>{candidate}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
             {entry ? (
               <>
                 <Text style={styles.original}>{entry.o}</Text>
@@ -208,6 +258,8 @@ export default function WordSheet({ code, word, onClose }: WordSheetProps) {
                 ) : null}
 
                 <WordReferences
+                  key={`${translation}.${code}`}
+                  translation={translation}
                   code={code}
                   c={c}
                   isDark={isDark}
@@ -215,6 +267,18 @@ export default function WordSheet({ code, word, onClose }: WordSheetProps) {
                   onOpenOccurrence={openOccurrence}
                 />
               </>
+            ) : state.status === "loading" ? (
+              <View>
+                <ActivityIndicator color={c.ox} />
+                <Text style={styles.body}>Loading word study…</Text>
+              </View>
+            ) : state.status === "error" ? (
+              <View>
+                <Text style={styles.body}>{state.message}</Text>
+                <Text accessibilityRole="button" onPress={retry} style={styles.referenceLink}>
+                  Retry word study
+                </Text>
+              </View>
             ) : (
               <Text style={styles.body}>No dictionary entry found for {code}.</Text>
             )}
@@ -235,6 +299,10 @@ const wordStyles = (c: Palette, bottom: number) =>
       paddingBottom: Math.max(28, bottom + 20),
       gap: 8,
     },
+    wordChoices: { gap: 8, marginTop: 8 },
+    codeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    codeChoice: { minHeight: 44, paddingHorizontal: 14, justifyContent: "center", borderRadius: 12, borderWidth: 1, borderColor: c.line },
+    codeChoiceSelected: { borderColor: c.ox, backgroundColor: c.bg },
     topRow: {
       flexDirection: "row",
       alignItems: "center",
