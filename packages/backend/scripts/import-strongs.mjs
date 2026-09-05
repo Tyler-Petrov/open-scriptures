@@ -6,10 +6,10 @@ import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { BOOKS } from "../../core/src/books.ts";
 import { TRANSLATION_IDS } from "../../core/src/translations.ts";
-import { linkedSpans, textFingerprint } from "../../core/src/strongs.ts";
+import { linkedSpans, textFingerprint, STRONGS_CODE_PATTERN } from "../../core/src/strongs.ts";
 
 const backend = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const codePattern = /^[GH][1-9][0-9]{0,4}[a-zA-Z]?$/;
+const codePattern = STRONGS_CODE_PATTERN;
 const readJson = path => JSON.parse(readFileSync(path, "utf8"));
 
 /** Accept only a translation's independently verified source spans. No projection
@@ -38,21 +38,47 @@ export function prepareStrongs({ input, translation, source, dictionary }) {
       if (!Array.isArray(verses) || verses.length > 200) throw Error(`Invalid chapter ${book.abbrev}.${ci + 1}`);
       const aligned = verses.map((spans, vi) => {
         if (spans === 0 || spans === null) return null;
-        if (!Array.isArray(spans) || !spans.length) throw Error("Invalid verse spans");
         let text = "";
-        const links = [];
-        const seen = new Set();
-        for (const span of spans) {
-          if (!Array.isArray(span) || span.length < 2 || span.length > 3 || typeof span[0] !== "string" || !span[0].length ||
-            (span[1] !== 0 && (typeof span[1] !== "string" || !codePattern.test(span[1]))) ||
-            (span[2] !== undefined && span[2] !== 0 && span[2] !== 1)) throw Error("Invalid word span");
-          const [word, code, supplied] = span;
-          if (code || supplied) links.push({ start: text.length, end: text.length + word.length, code: code || null, supplied: supplied === 1 });
-          text += word;
-          if (code) seen.add(code);
+        let links = [];
+        let sourceWords;
+        if (!Array.isArray(spans)) {
+          // Rich source format: explicit original-word IDs support repeated lemmas
+          // and a source word linked to more than one English phrase.
+          if (!spans || typeof spans.text !== "string" || !Array.isArray(spans.sourceWords) || !Array.isArray(spans.links)) throw Error("Invalid source-word alignment");
+          text = spans.text;
+          sourceWords = spans.sourceWords.map(word => {
+            if (!word || typeof word.id !== "string" || !word.id || !Array.isArray(word.codes) || !word.codes.length ||
+              word.codes.some(code => typeof code !== "string" || !codePattern.test(code)) ||
+              (word.text !== undefined && typeof word.text !== "string") ||
+              (word.morphology !== undefined && typeof word.morphology !== "string")) throw Error("Invalid original word");
+            return { id: word.id, codes: [...new Set(word.codes)],
+              ...(word.text === undefined ? {} : { text: word.text }),
+              ...(word.morphology === undefined ? {} : { morphology: word.morphology }) };
+          });
+          const words = new Map(sourceWords.map(word => [word.id, word]));
+          links = spans.links.map(link => {
+            if (!link || !Array.isArray(link.sourceWordIds) || !link.sourceWordIds.length ||
+              link.sourceWordIds.some(id => typeof id !== "string" || !words.has(id)) ||
+              (link.supplied !== undefined && typeof link.supplied !== "boolean")) throw Error("Invalid original-word link");
+            const sourceWordIds = [...new Set(link.sourceWordIds)];
+            return { start: link.start, end: link.end, supplied: link.supplied ?? false, sourceWordIds,
+              codes: [...new Set(sourceWordIds.flatMap(id => words.get(id).codes))] };
+          });
+        } else {
+          if (!spans.length) throw Error("Invalid verse spans");
+          for (const span of spans) {
+            if (!Array.isArray(span) || span.length < 2 || span.length > 3 || typeof span[0] !== "string" || !span[0].length ||
+              (span[2] !== undefined && span[2] !== 0 && span[2] !== 1)) throw Error("Invalid word span");
+            const [word, tags, supplied] = span;
+            const codes = tags === 0 ? [] : Array.isArray(tags) ? tags : [tags];
+            if (codes.some(code => typeof code !== "string" || !codePattern.test(code))) throw Error("Invalid Strong's code");
+            if (codes.length || supplied) links.push({ start: text.length, end: text.length + word.length, codes: [...new Set(codes)], supplied: supplied === 1 });
+            text += word;
+          }
         }
-        const alignment = { fingerprint: textFingerprint(text), links };
-        if (linkedSpans(text, alignment)?.map(s => s[0]).join("") !== text) throw Error("Alignment changed Scripture text");
+        const alignment = { fingerprint: textFingerprint(text), links, ...(sourceWords ? { sourceWords } : {}) };
+        if (linkedSpans(text, alignment)?.map(s => s[0]).join("") !== text) throw Error("Invalid alignment or changed Scripture text");
+        const seen = new Set(links.flatMap(link => link.codes));
         for (const code of seen) {
           const keys = occurrences.get(code) ?? [];
           keys.push(`${book.abbrev}.${ci + 1}.${vi + 1}`);

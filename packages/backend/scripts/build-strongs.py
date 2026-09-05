@@ -9,12 +9,12 @@ Sources (all public domain):
 
 Outputs into packages/backend/data/strongs/KJV/, with the shared dict.json one directory above:
   {BookName}.json  {"book":abbrev,"chapters":[[verse-spans|0,...],...]}
-                   verse-spans = [[text, "G123"|0], ...] concat == source KJV verse
+                   verse-spans = [[text, ["G123", ...]|0], ...] concat == source KJV verse
   dict.json        { code: {o,t,p,d,k,r,u,pos,l} }  (original, translit, pron,
                    def, kjv usage, derivation, outline, part-of-speech, language)
   occurrences.json { code: [verse ordinal in canonical order, ...] }
 """
-import html, json, re, subprocess, sys, time, unicodedata
+import argparse, html, json, re, subprocess, sys, time, unicodedata
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -74,7 +74,7 @@ ALNUM = re.compile(r"[A-Za-z0-9]")
 
 
 def token_codes(tagged):
-    """kaiserlik verse -> [(bare word, code|0, italic 0|1)]. Tags glue to the
+    """kaiserlik verse -> [(bare word, codes|0, italic 0|1)]. Tags glue to the
     word before them; <em> marks translator-supplied words."""
     text = tagged.replace("<em>", " \u27e8 ").replace("</em>", " \u27e9 ")
     tokens = []
@@ -87,15 +87,18 @@ def token_codes(tagged):
         if raw == "\u27e9":
             ital = max(0, ital - 1)
             continue
-        codes = TAG.findall(raw)
+        codes = list(dict.fromkeys(TAG.findall(raw)))
         word = TAG.sub("", raw)
         if not word:
-            if codes and tokens and tokens[-1][1] == 0:
-                tokens[-1] = (tokens[-1][0], codes[0], tokens[-1][2])
+            if codes and tokens:
+                previous = tokens[-1][1] or []
+                combined = list(dict.fromkeys(previous + codes))
+                multi += max(0, len(combined) - max(1, len(previous)))
+                tokens[-1] = (tokens[-1][0], combined, tokens[-1][2])
             continue
         if len(codes) > 1:
             multi += len(codes) - 1
-        tokens.append((word, codes[0] if codes else 0, 1 if ital else 0))
+        tokens.append((word, codes if codes else 0, 1 if ital else 0))
     # punctuation split off by the <em> markers re-attaches to a neighbor
     merged = []
     for tok in tokens:
@@ -112,7 +115,8 @@ def token_codes(tagged):
     tokens = merged
     # A tag covers its whole preceding phrase (back to the previous tag), so
     # spread codes backward over untagged words: "burnt offerings[G3646]"
-    # makes both words G3646, matching BLB phrase grouping.
+    # makes both words G3646. This follows this source's tagging convention;
+    # it is not a claim of equivalence with BLB's reviewed alignments.
     carry = 0
     for i in range(len(tokens) - 1, -1, -1):
         w, c, it = tokens[i]
@@ -174,7 +178,7 @@ def clean_kaiserlik(s):
     return html.unescape(s).strip()
 
 
-def main():
+def main(alignments_only=False):
     CACHE.mkdir(parents=True, exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
     order = book_order()
@@ -214,19 +218,23 @@ def main():
                     c = sp[1]
                     if c:
                         tagged_words += 1
-                        if c not in seen:
-                            occurrences.setdefault(c, []).append(ordinal - 1)
-                            seen.add(c)
+                        for code in c:
+                            if code not in seen:
+                                occurrences.setdefault(code, []).append(ordinal - 1)
+                                seen.add(code)
             chapters_out.append(verses_out)
         (OUT / f"{fname}.json").write_text(
             json.dumps({"book": abbr, "chapters": chapters_out}, ensure_ascii=False, separators=(",", ":"))
         )
         log(f"{abbr}: spans written")
-    log(f"verses matched {matched}/{total} ({100*matched/total:.2f}%), tagged words {tagged_words}, multi-tag dropped {multi_total}")
+    log(f"verses matched {matched}/{total} ({100*matched/total:.2f}%), tagged words {tagged_words}, additional source tags retained {multi_total}")
     if misses:
         log("first misses:", misses[:8])
     (OUT / "occurrences.json").write_text(json.dumps(occurrences, separators=(",", ":")))
     log(f"occurrences.json: {len(occurrences)} entries, {(OUT/'occurrences.json').stat().st_size/1e6:.1f} MB")
+
+    if alignments_only:
+        return
 
     # ---------- dictionary ----------
     lex = json.loads((CACHE / "lexicon.json").read_text()) if (CACHE / "lexicon.json").exists() else {}
@@ -259,4 +267,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--alignments-only", action="store_true", help="Preserve the existing shared dictionary")
+    main(parser.parse_args().alignments_only)

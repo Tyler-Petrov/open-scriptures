@@ -44,10 +44,10 @@ test("every migrated verse preserves the exact source text, codes, and italics",
 test("changed text and invalid offsets cannot display links", () => {
   const text = "Word 😀 word";
   const alignment = { fingerprint: textFingerprint(text), links: [{ start: 5, end: 7, code: "G1", supplied: false }] };
-  assert.deepEqual(linkedSpans(text, alignment), [["Word ", 0], ["😀", "G1", 0], [" word", 0]]);
+  assert.deepEqual(linkedSpans(text, alignment), [["Word ", 0, 0], ["😀", ["G1"], 0], [" word", 0, 0]]);
   assert.equal(linkedSpans("Word 😀 Word", alignment), null);
   assert.equal(linkedSpans(text, { ...alignment, links: [{ ...alignment.links[0], end: 100 }] }), null);
-  assert.equal(linkedSpans(text, { ...alignment, links: [alignment.links[0], alignment.links[0]] }), null);
+  assert.deepEqual(linkedSpans(text, { ...alignment, links: [alignment.links[0], alignment.links[0]] }), linkedSpans(text, alignment));
   assert.equal(linkedSpans(text, null), null);
 });
 
@@ -58,10 +58,70 @@ test("a separately supplied translation produces independent links and occurrenc
     const alternate = prepareStrongs({ input: fixture, dictionary, translation: "NIV", source: "synthetic test fixture, not NIV text" });
     const row = alternate.strongsChapters[0];
     assert.equal(row.translation, "NIV");
-    assert.equal(linkedSpans("Different wording", row.verses[0])[0][1], "H1");
+    assert.deepEqual(linkedSpans("Different wording", row.verses[0])[0][1], ["H1"]);
     assert.equal(linkedSpans("KJV wording", row.verses[0]), null);
     assert.equal(JSON.stringify(row).includes("Different wording"), false);
     assert.deepEqual(alternate.strongsOccurrences, [{ translation: "NIV", code: "H1", keys: ["Oba.1.1"] }]);
     assert.throws(() => prepareStrongs({ input: fixture, dictionary, translation: "INVALID", source: "test" }));
   } finally { rmSync(fixture, { recursive: true }); }
+});
+
+test("overlapping, discontinuous links preserve every code and distinct source-word ID", () => {
+  const text = "one two three";
+  const sourceWords = [
+    { id: "word1", codes: ["G1"], text: "α" },
+    { id: "word2", codes: ["G2"], text: "β" },
+    { id: "word3", codes: ["G1"], text: "α" },
+  ];
+  const alignment = {
+    fingerprint: textFingerprint(text), sourceWords,
+    links: [
+      { start: 0, end: 7, codes: ["G1"], sourceWordIds: ["word1"], supplied: false },
+      { start: 4, end: 7, codes: ["G2"], sourceWordIds: ["word2"], supplied: false },
+      { start: 8, end: 13, codes: ["G1"], sourceWordIds: ["word1", "word3"], supplied: false },
+    ],
+  };
+  assert.deepEqual(linkedSpans(text, alignment), [
+    ["one ", ["G1"], 0], ["two", ["G1", "G2"], 0], [" ", 0, 0], ["three", ["G1"], 0],
+  ]);
+  const badId = structuredClone(alignment);
+  badId.links[0].sourceWordIds = ["missing"];
+  assert.equal(linkedSpans(text, badId), null);
+  const wrongCode = structuredClone(alignment);
+  wrongCode.links[0].codes = ["G3"];
+  assert.equal(linkedSpans(text, wrongCode), null);
+  const duplicateId = structuredClone(alignment);
+  duplicateId.sourceWords.push(sourceWords[0]);
+  assert.equal(linkedSpans(text, duplicateId), null);
+});
+
+test("rich source imports retain IDs, include every linked code once per verse, and omit translation text", () => {
+  const fixture = mkdtempSync(resolve(tmpdir(), "strongs-rich-"));
+  try {
+    const verse = {
+      text: "one two three",
+      sourceWords: [{ id: "a", codes: ["G1"], text: "α", morphology: "N" }, { id: "b", codes: ["G2"] }],
+      links: [{ start: 0, end: 7, sourceWordIds: ["a"] }, { start: 4, end: 13, sourceWordIds: ["a", "b"] }],
+    };
+    writeFileSync(resolve(fixture, "Obadiah.json"), JSON.stringify({ book: "Oba", chapters: [[verse]] }));
+    const data = prepareStrongs({ input: fixture, dictionary, translation: "NIV", source: "synthetic fixture" });
+    assert.deepEqual(data.strongsChapters[0].verses[0].sourceWords, verse.sourceWords);
+    assert.equal(JSON.stringify(data).includes(verse.text), false);
+    assert.deepEqual(data.strongsOccurrences, [
+      { translation: "NIV", code: "G1", keys: ["Oba.1.1"] },
+      { translation: "NIV", code: "G2", keys: ["Oba.1.1"] },
+    ]);
+    verse.links[0].sourceWordIds = ["nonexistent"];
+    writeFileSync(resolve(fixture, "Obadiah.json"), JSON.stringify({ book: "Oba", chapters: [[verse]] }));
+    assert.throws(() => prepareStrongs({ input: fixture, dictionary, translation: "NIV", source: "test" }));
+  } finally { rmSync(fixture, { recursive: true }); }
+});
+
+test("old single-code server records remain readable during deployment", () => {
+  const text = "a word";
+  const spans = linkedSpans(text, { fingerprint: textFingerprint(text), links: [
+    { start: 0, end: 1, code: null, supplied: true },
+    { start: 2, end: 6, code: "G1", supplied: false },
+  ] });
+  assert.deepEqual(spans, [["a", 0, 1], [" ", 0, 0], ["word", ["G1"], 0]]);
 });

@@ -13,7 +13,7 @@ expect(
   "Word holds must use an explicit 500ms opening delay."
 );
 expect(
-  /onPressIn:\s*\(\)\s*=>\s*beginWordPress\(String\(code\),\s*t\)/.test(source),
+  /onPressIn:\s*\(\)\s*=>\s*beginWordPress\(code,\s*t\)/.test(source),
   "A native word hold must start when the finger goes down."
 );
 expect(

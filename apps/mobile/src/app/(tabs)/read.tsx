@@ -75,7 +75,7 @@ export default function ReadScreen() {
   const [displayOpen, setDisplayOpen] = useState(false);
   const [bookOpen, setBookOpen] = useState(false);
   const wordContext = `${settings.translation}.${pos.book}.${pos.chapter}`;
-  const [wordSheet, setWordSheet] = useState<{ code: string; word: string; context: string } | null>(null);
+  const [wordSheet, setWordSheet] = useState<{ codes: string[]; word: string; context: string } | null>(null);
   if (wordSheet && wordSheet.context !== wordContext) setWordSheet(null);
   const wordPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wordPressReleaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,14 +89,14 @@ export default function ReadScreen() {
   }, []);
 
   const beginWordPress = useCallback(
-    (code: string, word: string) => {
+    (codes: string[], word: string) => {
       clearWordPressTimers();
       wordPressOpenedRef.current = false;
       wordPressTimerRef.current = setTimeout(() => {
         wordPressTimerRef.current = null;
         wordPressOpenedRef.current = true;
         Vibration.vibrate(20);
-        setWordSheet({ code, word, context: wordContext });
+        setWordSheet({ codes, word, context: wordContext });
       }, WORD_PRESS_DELAY_MS);
     },
     [clearWordPressTimers, wordContext]
@@ -158,7 +158,12 @@ export default function ReadScreen() {
         } catch {
           // vibration unsupported on this browser
         }
-        setWordSheet({ code: el.dataset.scode ?? "", word: el.textContent ?? "", context: wordContext });
+        try {
+          const codes: unknown = JSON.parse(el.dataset.scode ?? "[]");
+          if (Array.isArray(codes) && codes.length && codes.every(code => typeof code === "string" && /^[GH][1-9][0-9]{0,4}[a-zA-Z]?$/.test(code))) {
+            setWordSheet({ codes, word: el.textContent ?? "", context: wordContext });
+          }
+        } catch { /* Ignore elements without valid word-study data. */ }
         clear();
       }, WORD_PRESS_DELAY_MS);
       document.addEventListener("pointermove", move);
@@ -532,7 +537,7 @@ export default function ReadScreen() {
             spans.map((sp, i) => {
               const t = sp[0];
               const code = sp[1];
-              const supplied = sp.length > 2 ? styles.supplied : null;
+              const supplied = sp[2] === 1 ? styles.supplied : null;
               return code ? (
                 <Text
                   key={i}
@@ -542,10 +547,10 @@ export default function ReadScreen() {
                       // clicks, so the web span stays inert: the row handles
                       // taps and the document-level listener handles long presses
                       // via this data attribute.
-                      ({ dataSet: { scode: String(code) } } as object)
+                      ({ dataSet: { scode: JSON.stringify(code) } } as object)
                     : {
                         onPress: () => selectVerse(index),
-                        onPressIn: () => beginWordPress(String(code), t),
+                        onPressIn: () => beginWordPress(code, t),
                         onPressOut: cancelWordPress,
                       })}
                   style={[tint ? { backgroundColor: tint } : styles.taggedWord, supplied]}
@@ -804,9 +809,9 @@ export default function ReadScreen() {
       />
       {wordSheet?.context === wordContext ? (
         <WordSheet
-          key={`${translation}.${wordSheet.code}`}
+          key={`${translation}.${wordSheet.codes.join(".")}`}
           translation={translation}
-          code={wordSheet.code}
+          codes={wordSheet.codes}
           word={wordSheet.word}
           onClose={() => setWordSheet(null)}
         />

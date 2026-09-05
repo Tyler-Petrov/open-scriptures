@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Collapsible, Column, Host, RNHostView } from "@expo/ui";
 import { useTheme, type Palette } from "@/lib/theme";
@@ -105,7 +105,7 @@ function WordReferences({
     <>
       <Text style={styles.label}>{translation} word links</Text>
       <Text style={styles.label}>
-        Appears in {occurrences.length.toLocaleString("en-US")}{" "}
+        Linked in {occurrences.length.toLocaleString("en-US")}{" "}
         {occurrences.length === 1 ? "verse" : "verses"} across {occurrenceBooks.length}{" "}
         {occurrenceBooks.length === 1 ? "book" : "books"}
       </Text>
@@ -166,14 +166,15 @@ function WordReferences({
 
 export type WordSheetProps = {
   translation: TranslationId;
-  code: string;
+  codes: string[];
   word: string;
   onClose: () => void;
 };
 
 /** Long-press word sheet: the original Greek/Hebrew/Aramaic behind a linked word. */
-export default function WordSheet({ translation, code, word, onClose }: WordSheetProps) {
+export default function WordSheet({ translation, codes, word, onClose }: WordSheetProps) {
   const { c, isDark } = useTheme();
+  const [code, setCode] = useState(codes[0]);
   const insets = useSafeAreaInsets();
   const { state, retry } = useStrongsEntry(code);
   const entry = state.status === "ready" ? state.data : null;
@@ -209,6 +210,26 @@ export default function WordSheet({ translation, code, word, onClose }: WordShee
                 “{word.trim()}”
               </Text>
             </View>
+
+            {codes.length > 1 ? (
+              <View style={styles.wordChoices}>
+                <Text style={styles.body}>This phrase links to {codes.length} Strong’s entries. Select one to study.</Text>
+                <View style={styles.codeChoices}>
+                  {codes.map(candidate => (
+                    <Pressable
+                      key={candidate}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Study ${candidate}`}
+                      accessibilityState={{ selected: candidate === code }}
+                      onPress={() => setCode(candidate)}
+                      style={[styles.codeChoice, candidate === code && styles.codeChoiceSelected]}
+                    >
+                      <Text style={styles.referenceLink}>{candidate}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ) : null}
 
             {entry ? (
               <>
@@ -278,6 +299,10 @@ const wordStyles = (c: Palette, bottom: number) =>
       paddingBottom: Math.max(28, bottom + 20),
       gap: 8,
     },
+    wordChoices: { gap: 8, marginTop: 8 },
+    codeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    codeChoice: { minHeight: 44, paddingHorizontal: 14, justifyContent: "center", borderRadius: 12, borderWidth: 1, borderColor: c.line },
+    codeChoiceSelected: { borderColor: c.ox, backgroundColor: c.bg },
     topRow: {
       flexDirection: "row",
       alignItems: "center",

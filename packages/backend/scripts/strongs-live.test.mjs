@@ -13,7 +13,7 @@ test("deployed queries serve migrated entries, exact word links, and ordered ref
   const text = original.chapters[0][0].map(s => s[0]).join("");
   const spans = linkedSpans(text, chapter.verses[0]);
   assert.equal(spans.map(s => s[0]).join(""), text);
-  const code = spans.find(s => s[1])[1];
+  const code = spans.find(s => s[1])[1][0];
   const entry = await client.query("strongs:entry", { code });
   assert.ok(entry.o);
   const occurrences = await client.query("strongs:occurrences", { translation: "KJV", code });
